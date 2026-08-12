@@ -66,7 +66,7 @@ kubectl -n groot create secret generic groot-trigger-api \
 kubectl apply -f deploy/k8s/manifests.yaml
 ```
 
-Image (after first release): `ghcr.io/hrodrig/groot-trigger:v0.1.0` (GoReleaser; **`v`-prefixed** tags only).
+Image: `ghcr.io/hrodrig/groot-trigger:v0.1.0` (GoReleaser; **`v`-prefixed** tags only).
 
 Reach the UI/API via ClusterIP Service, Ingress, or a temporary port-forward from a machine that can reach the cluster API/network:
 
