@@ -71,8 +71,13 @@ func NewInCluster(cfg config.Config) (*K8sStarter, error) {
 	return &K8sStarter{Client: cs, Cfg: cfg, NS: ns}, nil
 }
 
+// readNamespaceFile is overridden in tests.
+var readNamespaceFile = func() ([]byte, error) {
+	return os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+}
+
 func currentNamespace() (string, error) {
-	data, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+	data, err := readNamespaceFile()
 	if err != nil {
 		return "default", nil
 	}
@@ -81,6 +86,21 @@ func currentNamespace() (string, error) {
 		return "default", nil
 	}
 	return ns, nil
+}
+
+// Unavailable returns a Starter that always errors (e.g. no in-cluster config).
+func Unavailable(err error) Starter {
+	return unavailableStarter{err: err}
+}
+
+type unavailableStarter struct{ err error }
+
+func (u unavailableStarter) ActiveJob(context.Context) (string, bool, error) {
+	return "", false, u.err
+}
+
+func (u unavailableStarter) Create(context.Context, string, string) (Result, error) {
+	return Result{}, u.err
 }
 
 // ActiveJob lists collect Jobs that are not finished.

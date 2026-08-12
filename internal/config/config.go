@@ -105,3 +105,12 @@ func envOr(key, def string) string {
 	}
 	return def
 }
+
+// MaskSecret returns a partially redacted secret for startup banners.
+func MaskSecret(s string) string {
+	r := []rune(s)
+	if len(r) < 8 {
+		return "[masked]"
+	}
+	return string(r[:4]) + "...." + string(r[len(r)-4:])
+}

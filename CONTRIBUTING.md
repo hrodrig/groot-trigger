@@ -23,7 +23,7 @@ make lint-fix
 make ci
 ```
 
-Maintainers before tag: `make release-check` (optional `STRICT_RELEASE=1` for image scan).
+Maintainers before tag: `make release-check` (includes `make cover` with **`COVER_MIN=80`**; optional `STRICT_RELEASE=1` for image scan).
 
 ## Scope
 

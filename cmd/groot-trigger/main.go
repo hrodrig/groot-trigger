@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -28,24 +29,40 @@ var (
 )
 
 func main() {
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
+	os.Exit(run(os.Args[1:]))
+}
+
+func run(args []string) int {
+	if len(args) > 0 {
+		switch args[0] {
 		case "version", "--version", "-V":
 			fmt.Printf("groot-trigger %s commit=%s branch=%s date=%s\n", version, commit, branch, buildDate)
-			return
+			return 0
 		}
 	}
 
 	cfg, err := config.LoadFromEnv()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "groot-trigger: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 	logging.Setup(cfg.LogFormat, cfg.LogLevel)
 
 	fmt.Fprintf(os.Stderr, "groot-trigger %s | build %s | listen %s | api_key %s\n",
-		version, buildDate, cfg.ListenAddr, maskSecret(cfg.APIKey))
+		version, buildDate, cfg.ListenAddr, config.MaskSecret(cfg.APIKey))
 
+	httpSrv, err := newHTTPServer(cfg, jobs.NewInCluster)
+	if err != nil {
+		slog.Error("setup failed", "error", err)
+		return 1
+	}
+	return listenAndServe(httpSrv)
+}
+
+// newInClusterFn is overridable in tests.
+type newInClusterFn func(config.Config) (*jobs.K8sStarter, error)
+
+func newHTTPServer(cfg config.Config, newKS newInClusterFn) (*http.Server, error) {
 	trusted := proxy.ParseTrustedProxies(cfg.TrustedProxies)
 	if trusted.Empty() && cfg.RateLimitPost.Requests > 0 {
 		slog.Warn("Client IP headers ignored: GROOT_TRIGGER_TRUSTED_PROXIES empty (safe for ClusterIP)")
@@ -53,11 +70,11 @@ func main() {
 
 	var starter jobs.Starter
 	readyOK := true
-	ks, err := jobs.NewInCluster(cfg)
+	ks, err := newKS(cfg)
 	if err != nil {
 		slog.Warn("kubernetes client unavailable; /readyz fails until in-cluster config works", "error", err)
 		readyOK = false
-		starter = unavailableStarter{err: err}
+		starter = jobs.Unavailable(err)
 	} else {
 		starter = ks
 	}
@@ -77,42 +94,34 @@ func main() {
 		"trusted_proxies", !trusted.Empty(),
 	)
 
-	httpSrv := &http.Server{
+	return &http.Server{
 		Addr:              cfg.ListenAddr,
 		Handler:           srv.Handler(),
 		ReadHeaderTimeout: 5 * time.Second,
-	}
+	}, nil
+}
 
+func listenAndServe(httpSrv *http.Server) int {
+	errCh := make(chan error, 1)
 	go func() {
-		slog.Info("listen", "addr", cfg.ListenAddr)
-		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			slog.Error("server stopped", "error", err)
-			os.Exit(1)
-		}
+		slog.Info("listen", "addr", httpSrv.Addr)
+		errCh <- httpSrv.ListenAndServe()
 	}()
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-	<-ctx.Done()
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	_ = httpSrv.Shutdown(shutdownCtx)
-}
 
-func maskSecret(s string) string {
-	r := []rune(s)
-	if len(r) < 8 {
-		return "[masked]"
+	select {
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = httpSrv.Shutdown(shutdownCtx)
+		return 0
+	case err := <-errCh:
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("server stopped", "error", err)
+			return 1
+		}
+		return 0
 	}
-	return string(r[:4]) + "...." + string(r[len(r)-4:])
-}
-
-type unavailableStarter struct{ err error }
-
-func (u unavailableStarter) ActiveJob(context.Context) (string, bool, error) {
-	return "", false, u.err
-}
-
-func (u unavailableStarter) Create(context.Context, string, string) (jobs.Result, error) {
-	return jobs.Result{}, u.err
 }

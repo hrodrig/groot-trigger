@@ -48,6 +48,8 @@ func TestLoadFromEnvOK(t *testing.T) {
 	t.Setenv("GROOT_TRIGGER_API_KEY", "secret")
 	t.Setenv("LISTEN_ADDR", ":9090")
 	t.Setenv("GROOT_TRIGGER_RATE_LIMIT_POST", "5/1m")
+	t.Setenv("GROOT_EXTRA_ARGS", "--verbose")
+	t.Setenv("GROOT_TRIGGER_RATE_LIMIT_GLOBAL", "30/1m")
 	cfg, err := LoadFromEnv()
 	if err != nil {
 		t.Fatal(err)
@@ -57,5 +59,28 @@ func TestLoadFromEnvOK(t *testing.T) {
 	}
 	if cfg.RateLimitPost.Requests != 5 {
 		t.Fatalf("rate: %+v", cfg.RateLimitPost)
+	}
+	if cfg.RateLimitGlobal.Requests != 30 {
+		t.Fatalf("global: %+v", cfg.RateLimitGlobal)
+	}
+	if len(cfg.GrootExtraArgs) != 1 || cfg.GrootExtraArgs[0] != "--verbose" {
+		t.Fatalf("extra: %#v", cfg.GrootExtraArgs)
+	}
+}
+
+func TestLoadFromEnvBadRate(t *testing.T) {
+	t.Setenv("GROOT_TRIGGER_API_KEY", "secret")
+	t.Setenv("GROOT_TRIGGER_RATE_LIMIT_POST", "nope")
+	if _, err := LoadFromEnv(); err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestMaskSecret(t *testing.T) {
+	if MaskSecret("short") != "[masked]" {
+		t.Fatal("short")
+	}
+	if got := MaskSecret("abcdefghij"); got != "abcd....ghij" {
+		t.Fatal(got)
 	}
 }

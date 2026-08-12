@@ -15,4 +15,4 @@
 
 - Commit Phase 1
 - Lab dogfood in-cluster
-- Phase 2: Helm polish / COVER_MIN 80 / kind e2e
+- Phase 2: Helm polish / kind e2e (COVER_MIN 80 done)

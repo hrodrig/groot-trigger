@@ -7,6 +7,8 @@ alwaysApply: true
 
 Before merging to `main` or creating a release tag, run **`make release-check`**.
 
+`release-check` includes **`make cover`** with default **`COVER_MIN=80`**. Do not tag if coverage is below the gate.
+
 Until `origin` exists, `goreleaser check` is skipped (local-first). After the remote is added, release-check must pass fully before the first tag.
 
 Optional: `STRICT_RELEASE=1` also runs `make docker-scan`.

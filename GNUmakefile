@@ -18,8 +18,8 @@ LDFLAGS     := -s -w \
 	-X 'main.buildDate=$(BUILDDATE)'
 
 GOLANGCI_LINT_VERSION ?= v2.5.0
-# Stub has no meaningful coverage yet; raise to 80 after GSD tests land.
-COVER_MIN ?= 0
+# Gate like groot: release-check runs cover; override locally with COVER_MIN=0 if needed.
+COVER_MIN ?= 80
 GRYPE_FAIL_ON ?= high
 GRYPE_DIR_EXCLUDES := --exclude './bin/**' --exclude './dist/**'
 STRICT_RELEASE ?= 0

@@ -2,10 +2,14 @@ package jobs
 
 import (
 	"context"
+	"errors"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/hrodrig/groot-trigger/internal/config"
 	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 )
@@ -59,5 +63,108 @@ func TestActiveIgnoresSucceeded(t *testing.T) {
 func TestDNS1123(t *testing.T) {
 	if got := dns1123("Groot_Collect.ABC"); got != "groot-collect-abc" {
 		t.Fatal(got)
+	}
+	if got := dns1123("!!!"); got != "groot-collect" {
+		t.Fatal(got)
+	}
+	long := strings.Repeat("a", 80)
+	if len(dns1123(long)) > 63 {
+		t.Fatal("too long")
+	}
+}
+
+func TestErrBusyError(t *testing.T) {
+	e := &ErrBusy{JobName: "j1"}
+	if e.Error() == "" {
+		t.Fatal("empty")
+	}
+}
+
+func TestJobActiveVariants(t *testing.T) {
+	if jobActive(&batchv1.Job{Status: batchv1.JobStatus{Failed: 1}}) {
+		t.Fatal("failed")
+	}
+	if !jobActive(&batchv1.Job{Status: batchv1.JobStatus{Active: 2}}) {
+		t.Fatal("active")
+	}
+	complete := &batchv1.Job{Status: batchv1.JobStatus{
+		Conditions: []batchv1.JobCondition{{Type: batchv1.JobComplete, Status: corev1.ConditionTrue}},
+	}}
+	if jobActive(complete) {
+		t.Fatal("complete cond")
+	}
+	pending := &batchv1.Job{Status: batchv1.JobStatus{}}
+	if !jobActive(pending) {
+		t.Fatal("pending should be active")
+	}
+}
+
+func TestCurrentNamespace(t *testing.T) {
+	old := readNamespaceFile
+	t.Cleanup(func() { readNamespaceFile = old })
+	readNamespaceFile = func() ([]byte, error) { return nil, os.ErrNotExist }
+	ns, err := currentNamespace()
+	if err != nil || ns != "default" {
+		t.Fatalf("%q %v", ns, err)
+	}
+	readNamespaceFile = func() ([]byte, error) { return []byte("  groot\n"), nil }
+	ns, err = currentNamespace()
+	if err != nil || ns != "groot" {
+		t.Fatalf("%q %v", ns, err)
+	}
+	readNamespaceFile = func() ([]byte, error) { return []byte("   "), nil }
+	ns, err = currentNamespace()
+	if err != nil || ns != "default" {
+		t.Fatalf("%q %v", ns, err)
+	}
+}
+
+func TestUnavailable(t *testing.T) {
+	u := Unavailable(errors.New("no k8s"))
+	if _, _, err := u.ActiveJob(context.Background()); err == nil {
+		t.Fatal("active")
+	}
+	if _, err := u.Create(context.Background(), "id", ""); err == nil {
+		t.Fatal("create")
+	}
+}
+
+func TestCreateWithPVCAndSecret(t *testing.T) {
+	cs := fake.NewSimpleClientset()
+	s := &K8sStarter{
+		Client: cs,
+		Cfg: config.Config{
+			GrootImage:         "ghcr.io/hrodrig/groot:v1.1.1",
+			GrootConfigMap:     "groot-config",
+			GrootConfigKey:     "groot.yml",
+			GrootJobSA:         "groot",
+			GrootOutPVC:        "groot-out",
+			GrootEnvFromSecret: "groot-s3",
+			GrootExtraArgs:     []string{"--verbose"},
+			JobTTLSeconds:      60,
+		},
+		NS: "groot",
+	}
+	res, err := s.Create(context.Background(), "aabbccdd", "m")
+	if err != nil {
+		t.Fatal(err)
+	}
+	j, err := cs.BatchV1().Jobs("groot").Get(context.Background(), res.JobName, metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := j.Spec.Template.Spec.Containers[0]
+	if len(c.EnvFrom) != 1 || c.EnvFrom[0].SecretRef.Name != "groot-s3" {
+		t.Fatalf("envFrom: %+v", c.EnvFrom)
+	}
+	if j.Spec.Template.Spec.Volumes[1].PersistentVolumeClaim == nil {
+		t.Fatal("expected pvc volume")
+	}
+}
+
+func TestNewInClusterFailsOutside(t *testing.T) {
+	_, err := NewInCluster(config.Config{})
+	if err == nil {
+		t.Fatal("expected in-cluster config error outside cluster")
 	}
 }

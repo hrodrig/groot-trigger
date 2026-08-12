@@ -14,6 +14,6 @@
 | #7 | GSD: client-go Job create + single-flight 409 | Done (local) |
 | #8 | Helm chart (optional thin wrap of flat manifests) | Pending |
 | #9 | First tagged release (`v0.1.0`) + GHCR | Pending (needs remote) |
-| #10 | Raise `COVER_MIN` to 80 after tests exist | Pending |
+| #10 | Raise `COVER_MIN` to 80 after tests exist | Done |
 
 Contract: [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md)
