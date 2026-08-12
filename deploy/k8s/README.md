@@ -1,6 +1,6 @@
-# Flat Kubernetes manifests — groot-trigger (MVP)
+# Flat Kubernetes manifests — groot-trigger
 
-Apply after the application implements `docs/SPECIFICATIONS.md` (GSD). Until then, image tags may not exist on GHCR.
+Pin `ghcr.io/hrodrig/groot-trigger:v0.1.0` (GoReleaser; **`v`-prefixed** tags). Behavior: [docs/SPECIFICATIONS.md](../../docs/SPECIFICATIONS.md).
 
 ```bash
 # Create secrets first (do not commit real keys):
@@ -13,12 +13,13 @@ kubectl -n groot create secret generic groot-trigger-api \
 #   --docker-username=YOUR_USERNAME \
 #   --docker-password=YOUR_PASSWORD
 
-# Optional: object-storage creds for the collect Job (enable upload in groot-config
-# and set GROOT_ENVFROM_SECRET on the Deployment):
-# kubectl -n groot create secret generic groot-s3 \
+# Optional: upload creds for the collect Job (enable upload in groot-config
+# — S3 / GCS / SFTP per groot — and set GROOT_ENVFROM_SECRET on the Deployment):
+# kubectl -n groot create secret generic YOUR_UPLOAD_SECRET \
 #   --from-literal=AWS_ACCESS_KEY_ID=... \
 #   --from-literal=AWS_SECRET_ACCESS_KEY=... \
 #   --from-literal=AWS_REGION=...
+#   # SFTP: GROOT_UPLOAD_SFTP_IDENTITY_FILE (and related GROOT_UPLOAD_SFTP_*)
 
 kubectl apply -f deploy/k8s/manifests.yaml
 kubectl -n groot port-forward svc/groot-trigger 8080:8080

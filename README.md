@@ -17,9 +17,9 @@
   <img src="docs/assets/groot-trigger-readme-hero.png" alt="groot-trigger — in-cluster HTTP API that starts a groot collect Job" width="100%" />
 </p>
 
-**The problem:** Operators want a **“Generate GROOT files”** control (browser or HTTP client) that starts an in-cluster **`groot collect`**, optionally uploads the archive to object storage, and returns quickly — without blocking the client for the full collect window. The **groot** product is a **one-shot CLI** by design (no HTTP server, no long-lived collector daemon). Putting an API inside **groot** would break that philosophy. A CronJob covers *schedule*; it does not cover *button / API on demand*.
+**The problem:** Operators want a **“Generate GROOT files”** control (browser or HTTP client) that starts an in-cluster **`groot collect`**, optionally uploads the archive with **groot** (`upload.s3` / `upload.gcs` / `upload.sftp`; HTTP(S)/WebDAV planned upstream), and returns quickly — without blocking the client for the full collect window. The **groot** product is a **one-shot CLI** by design (no HTTP server, no long-lived collector daemon). Putting an API inside **groot** would break that philosophy. A CronJob covers *schedule*; it does not cover *button / API on demand*.
 
-**How groot-trigger solves it:** An idle **Deployment** in the cluster exposes `GET/POST /v1/collect`. The GET serves a minimal **vanilla** HTML page (API key + **Generate GROOT files**). The POST authenticates, rate-limits, enforces single-flight (`409` if a collect Job is already running), and creates an ephemeral Kubernetes **Job** that runs `ghcr.io/hrodrig/groot` with the operator’s ConfigMap / Secrets. The trigger stays fire-and-forget (`202` + `run_id`); completion shows up via groot notify and/or object storage — not by proxying the archive through this service.
+**How groot-trigger solves it:** An idle **Deployment** in the cluster exposes `GET/POST /v1/collect`. The GET serves a minimal **vanilla** HTML page (API key + **Generate GROOT files**). The POST authenticates, rate-limits, enforces single-flight (`409` if a collect Job is already running), and creates an ephemeral Kubernetes **Job** that runs `ghcr.io/hrodrig/groot` with the operator’s ConfigMap / Secrets. The trigger stays fire-and-forget (`202` + `run_id`); completion shows up via groot notify and/or the Job’s configured upload — not by proxying the archive through this service.
 
 > **Runtime target is Kubernetes.** Ship and run the published image (`ghcr.io/hrodrig/groot-trigger`) with the flat manifests under [deploy/k8s](deploy/k8s/README.md). This companion does **not** replace the CLI; scheduled / bastion collect stays in **[groot-selfhosted](https://github.com/hrodrig/groot-selfhosted)**.
 
@@ -75,7 +75,7 @@ kubectl -n groot port-forward svc/groot-trigger 8080:8080
 # then open http://127.0.0.1:8080/v1/collect
 ```
 
-Optional object-storage upload for the collect Job: enable `upload` in the ConfigMap and set `GROOT_ENVFROM_SECRET` on the Deployment (same Secret pattern as **groot-selfhosted**).
+Optional post-collect upload for the Job: enable `upload` in the ConfigMap (`s3` / `gcs` / `sftp` — see [groot SPEC](https://github.com/hrodrig/groot/blob/main/SPECIFICATIONS.md#10-post-collect-upload)) and set `GROOT_ENVFROM_SECRET` on the Deployment (same Secret pattern as **groot-selfhosted**). HTTP(S)/WebDAV upload is planned in **groot**, not in this companion.
 
 [↑ Back to top](#readme-top)
 

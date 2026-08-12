@@ -1,6 +1,6 @@
 # groot-trigger — specifications
 
-**Status:** Approved (2026-08-12). Behavior contract for the shipped MVP.  
+**Status:** Approved (2026-08-12). Behavior contract for **v0.1.0**.  
 **Repo:** [github.com/hrodrig/groot-trigger](https://github.com/hrodrig/groot-trigger)  
 **Design history:** [docs/superpowers/specs/2026-08-12-groot-trigger-design.md](superpowers/specs/2026-08-12-groot-trigger-design.md)  
 **Not in scope:** GROOT CLI behavior; Helm CronJob packaging (**groot** / **groot-selfhosted**).
@@ -12,10 +12,10 @@
 Operators want a **“Generate GROOT files”** control (browser or HTTP client) that:
 
 1. Runs an in-cluster `groot collect`
-2. Uploads the archive to external object storage (e.g. Contabo S3)
+2. Optionally uploads the archive with **groot** (`upload.s3` / `upload.gcs` / `upload.sftp`; HTTP(S)/WebDAV planned in groot)
 3. Returns quickly without blocking the client for minutes
 
-MVP ships the button **inside groot-trigger**: `GET /v1/collect` serves a minimal HTML page; `POST /v1/collect` starts the Job. No separate web app required.
+The product ships the button **inside groot-trigger**: `GET /v1/collect` serves a minimal HTML page; `POST /v1/collect` starts the Job. No separate web app required.
 
 The **groot** product is a one-shot CLI by design (no HTTP server, no long-lived collector daemon). Putting an API inside **groot** would break that philosophy.
 
@@ -33,7 +33,7 @@ The **groot** product is a one-shot CLI by design (no HTTP server, no long-lived
 - Reuse operator config patterns from **groot-selfhosted** (ConfigMap `groot.yml`, Secret for `AWS_*`, image pin `vX.Y.Z`)
 - English-only artifacts; companion to groot, not a fork of the collector
 
-### Non-goals (MVP)
+### Non-goals (v0.1.x)
 
 - OIDC / mTLS / per-user identity (Phase 2)
 - Status poll / download proxy / presigned URL API
@@ -58,7 +58,7 @@ The **groot** product is a one-shot CLI by design (no HTTP server, no long-lived
                                        ┌──────────────────────┐
                                        │  Job Pod             │
                                        │  image: groot:vX.Y.Z │
-                                       │  collect → upload S3 │
+                                       │  collect → upload    │
                                        │  → exit              │
                                        └──────────────────────┘
 ```
@@ -71,7 +71,7 @@ The **groot** product is a one-shot CLI by design (no HTTP server, no long-lived
 | CronJob / Helm | **groot-selfhosted** | Optional schedule; Job template reference |
 | Trigger | **groot-trigger** | GET page + auth + POST → Job; concurrency gate |
 
-## 4. HTTP contract (MVP)
+## 4. HTTP contract
 
 ### Authentication (required)
 
@@ -94,7 +94,7 @@ Rules:
 
 API key is a **shared secret**, not per-user identity. Still prefer ClusterIP / no public Ingress. Key ≠ network isolation.
 
-### Rate limit (MVP)
+### Rate limit
 
 In-process limiter (no Redis). Complements **409** single-flight (concurrency) with request throttling (auth brute-force / spam).
 
@@ -134,7 +134,7 @@ Serves a **minimal HTML** page (English UI strings):
 - Visual: operator utility (CSS custom properties, sober palette, monospace for `run_id` / status). No marketing hero, cards, or stat strips
 - No status poll, no download list
 
-Optional later: if `Accept: application/json`, return a short JSON description of the endpoint (not required for MVP). Default for browsers = `text/html`.
+Optional later: if `Accept: application/json`, return a short JSON description of the endpoint (not required in v0.1.x). Default for browsers = `text/html`.
 
 ### `POST /v1/collect`
 
@@ -166,7 +166,7 @@ Prefer JSON when `Accept` includes `application/json` or request used JSON / `X-
 | `400` | Malformed JSON | `{"error":"bad_request"}` | Short error + link back |
 | `500` | API / RBAC / apiserver failure | `{"error":"internal","detail":"..."}` (no secrets) | Short error + link back |
 
-**No** `GET /v1/collect/{id}` in MVP. Completion signal = notify channels and/or object appearing in the bucket.
+**No** `GET /v1/collect/{id}` in v0.1.x. Completion signal = notify channels and/or object appearing in the bucket.
 
 ### `GET /healthz`
 
@@ -187,7 +187,7 @@ Readiness: `200` if in-cluster config / Job client can be constructed (lightweig
 - **Args:** `collect --config /config/groot.yml` (+ optional `--verbose` via values)
 - **ServiceAccount:** dedicated Job SA with **read-only** ClusterRole (same shape as groot-selfhosted collector RBAC)
 - **Volumes:** ConfigMap (groot.yml), PVC or emptyDir for `/out` (operator choice)
-- **envFrom:** optional Secret (e.g. `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`) for `upload.s3`
+- **envFrom:** optional Secret for groot upload (`AWS_*` for S3, GCS ADC, `GROOT_UPLOAD_SFTP_*` for SFTP)
 - **TTL:** `ttlSecondsAfterFinished` set so completed Jobs are garbage-collected
 
 ### Single-flight
@@ -258,7 +258,7 @@ Upload/bucket settings stay in **groot.yml** (ConfigMap), not in trigger code. C
 
 Startup config summary: image, namespace, rate limits, trusted-proxy on/off — not the key.
 
-## 9. Security (MVP)
+## 9. Security
 
 - **API key required** for collect (`POST`); fail closed if unset
 - **Rate limit** on `POST` (per-IP ± global); **429**
@@ -314,7 +314,7 @@ Validated on a lab cluster before this design:
 
 ## 14. Implementation notes
 
-Application code is implemented via **GSD** against this SPEC. Packaging (Docker, Makefile, GoReleaser) may land before feature code.
+Application code implements this SPEC. Image and binaries ship via GoReleaser (`v`-prefixed tags).
 
 ---
 
@@ -326,7 +326,7 @@ Application code is implemented via **GSD** against this SPEC. Packaging (Docker
 | Runtime model | **A** — Job on demand; trigger idle |
 | UI | **GET `/v1/collect`** = vanilla HTML (API key + **“Generate GROOT files”**); **POST** starts Job |
 | Frontend | **Vanilla** embed (HTML/CSS); no Tailwind/Bootstrap/CDN |
-| Auth MVP | **Shared API key** (`GROOT_TRIGGER_API_KEY`); Bearer / `X-API-Key` / form `api_key`; fail closed |
+| Auth | **Shared API key** (`GROOT_TRIGGER_API_KEY`); Bearer / `X-API-Key` / form `api_key`; fail closed |
 | Rate limit | In-process per-IP (+ optional global) on POST → **429** |
 | Trusted proxies | Opt-in CIDRs; default ignore `X-Forwarded-*` |
 | Logging | **gghstats-style `slog`**: level env + HTTP access level-by-status (4xx warn / 5xx error); not groot `logx` |
