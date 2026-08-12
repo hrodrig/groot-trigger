@@ -8,7 +8,6 @@ import (
 )
 
 func TestValid(t *testing.T) {
-	t.Parallel()
 	if !Valid("abc", "abc") {
 		t.Fatal("same key")
 	}
@@ -21,7 +20,6 @@ func TestValid(t *testing.T) {
 }
 
 func TestExtractKey(t *testing.T) {
-	t.Parallel()
 	r := httptest.NewRequest(http.MethodPost, "/", nil)
 	r.Header.Set("X-API-Key", "k1")
 	if ExtractKey(r) != "k1" {

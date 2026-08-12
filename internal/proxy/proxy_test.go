@@ -8,7 +8,6 @@ import (
 )
 
 func TestClientIPIgnoresForwardedWhenUntrusted(t *testing.T) {
-	t.Parallel()
 	tp := ParseTrustedProxies("")
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.RemoteAddr = "10.0.0.5:1234"
@@ -19,7 +18,6 @@ func TestClientIPIgnoresForwardedWhenUntrusted(t *testing.T) {
 }
 
 func TestClientIPUsesXFFWhenTrusted(t *testing.T) {
-	t.Parallel()
 	tp := ParseTrustedProxies("10.0.0.0/8")
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.RemoteAddr = "10.0.0.5:1234"
@@ -30,7 +28,6 @@ func TestClientIPUsesXFFWhenTrusted(t *testing.T) {
 }
 
 func TestClientIPUsesXRealIP(t *testing.T) {
-	t.Parallel()
 	tp := ParseTrustedProxies("10.0.0.5")
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.RemoteAddr = "10.0.0.5:9"
@@ -41,7 +38,6 @@ func TestClientIPUsesXRealIP(t *testing.T) {
 }
 
 func TestParseTrustedProxiesSkipsBad(t *testing.T) {
-	t.Parallel()
 	tp := ParseTrustedProxies("not-a-cidr, , 192.0.2.1")
 	if tp.Empty() {
 		t.Fatal("expected one net")
@@ -55,7 +51,6 @@ func TestParseTrustedProxiesSkipsBad(t *testing.T) {
 }
 
 func TestPeerIPBare(t *testing.T) {
-	t.Parallel()
 	if peerIP("10.1.2.3") != "10.1.2.3" {
 		t.Fatal("bare")
 	}

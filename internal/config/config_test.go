@@ -6,7 +6,6 @@ import (
 )
 
 func TestParseLimitSpec(t *testing.T) {
-	t.Parallel()
 	cases := []struct {
 		in      string
 		wantN   int
