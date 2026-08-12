@@ -285,7 +285,7 @@ groot-trigger/
   docs/superpowers/specs/2026-08-12-groot-trigger-design.md  # this file
   cmd/groot-trigger/main.go
   internal/...
-  deploy/helm/   # or kustomize — thin chart: Deployment + Service + RBAC + optional NetworkPolicy
+  deploy/k8s/    # Flat manifests: Deployment + Service + RBAC (Helm later if demand)
 ```
 
 Stack: Go 1.22+ (align with groot when practical), client-go, stdlib `net/http` or chi (keep deps small).
@@ -314,7 +314,7 @@ Validated on a lab cluster before this design:
 
 1. Skeleton Go module + `/healthz` + API key middleware + `GET/POST /v1/collect` (HTML form + stub POST)
 2. client-go Job create + busy check
-3. Deploy manifests / Helm chart (Secret for `GROOT_TRIGGER_API_KEY`)
+3. Deploy flat manifests (Secret for `GROOT_TRIGGER_API_KEY`)
 4. kind/envtest CI (401 / 202 paths)
 5. Document port-forward / Service URL + key handling for operators
 

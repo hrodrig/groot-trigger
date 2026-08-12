@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - BSD packaging: FreeBSD/OpenBSD port skeletons, `contrib/man/man1/groot-trigger.1`, `make dist-freebsd` / `dist-openbsd` / `port-*-sync` / `man-sync`; GoReleaser builds freebsd+openbsd
 - MVP application (SPEC): `GET/POST /v1/collect`, API key auth, rate limits, trusted proxies, slog access logs, client-go Job create + single-flight 409, vanilla HTML UI
 
+### Changed
+
+- `deploy/k8s`: distroless numeric `runAsUser`/`runAsGroup` `65532`; optional commented `imagePullSecrets` / `GROOT_ENVFROM_SECRET` / upload skeleton; GHCR image pin
+
+### Notes
+
+- Helm chart for trigger (#8) deferred: ship flat `deploy/k8s` first; add a thin chart later only if operators ask or overlays become painful. Scheduled collect packaging stays in **groot-selfhosted**.
+
 ## [0.1.0] — TBD
 
 Initial release after GSD implementation.

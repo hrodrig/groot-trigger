@@ -18,4 +18,4 @@ End-to-end: POST with API key → fake JobStarter creates job → 202 JSON; with
 
 ## Out of scope
 
-OIDC, status poll, Helm chart polish, kind e2e.
+OIDC, status poll, kind e2e. Flat manifests; Helm chart later only if demand.

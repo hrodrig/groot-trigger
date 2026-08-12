@@ -13,4 +13,4 @@
 
 ## Phase 2 — Hardening / deploy polish
 
-Helm chart wrap, COVER_MIN 80, kind e2e (after remote optional).
+COVER_MIN 80 done; kind e2e (after remote optional). Flat manifests first; Helm chart only if operators ask.

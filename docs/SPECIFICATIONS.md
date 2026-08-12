@@ -285,7 +285,7 @@ groot-trigger/
   docs/superpowers/specs/…        # design history
   cmd/groot-trigger/
   internal/
-  deploy/                         # Helm/manifests (GSD)
+  deploy/k8s/                     # Flat manifests (Deployment + Service + RBAC); Helm only if demand
   Dockerfile / Dockerfile.release
   .goreleaser.yaml / Makefile
 ```

@@ -3,3 +3,5 @@ bin
 dist
 coverage.out
 *.test
+.gocache
+.gotmp

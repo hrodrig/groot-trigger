@@ -13,6 +13,9 @@
 
 ## Next
 
-- Commit Phase 1
-- Lab dogfood in-cluster
-- Phase 2: Helm polish / kind e2e (COVER_MIN 80 done)
+- Commit deploy/k8s hardening (distroless UID, optional upload wiring)
+- Phase 2: kind e2e (flat manifests; Helm only if demand)
+
+## Validated
+
+- In-cluster HTTP UI + Job create + optional object-storage upload path

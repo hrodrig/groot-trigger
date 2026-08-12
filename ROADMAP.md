@@ -7,12 +7,12 @@
 | #1 | SPEC + packaging scaffold (Docker, Make, GoReleaser) | Done (local) |
 | #2 | Make security targets (`govulncheck`, `gocyclo`, `grype`) | Done (local) |
 | #3 | `.github/workflows/ci.yml` | Done (local; needs remote to run) |
-| #4 | `deploy/k8s` flat manifests + README | Done (sketch; needs app) |
+| #4 | `deploy/k8s` flat manifests + README | Done |
 | #5 | CONTRIBUTING / SECURITY / `.cursor` rules | Done (local) |
 | #5b | BSD ports (FreeBSD/OpenBSD) + man + dist-* Make targets | Done (local) |
 | #6 | GSD: HTTP server, API key, rate limit, trusted proxies, vanilla UI | Done (local) |
 | #7 | GSD: client-go Job create + single-flight 409 | Done (local) |
-| #8 | Helm chart (optional thin wrap of flat manifests) | Pending |
+| #8 | Helm chart (thin wrap of flat manifests) | Deferred — flat `deploy/k8s` enough for now; revisit if operators ask or copy-paste hurts |
 | #9 | First tagged release (`v0.1.0`) + GHCR | Pending (needs remote) |
 | #10 | Raise `COVER_MIN` to 80 after tests exist | Done |
 

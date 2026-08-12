@@ -1,4 +1,4 @@
-# Flat Kubernetes manifests — groot-trigger (MVP sketch)
+# Flat Kubernetes manifests — groot-trigger (MVP)
 
 Apply after the application implements `docs/SPECIFICATIONS.md` (GSD). Until then, image tags may not exist on GHCR.
 
@@ -7,11 +7,18 @@ Apply after the application implements `docs/SPECIFICATIONS.md` (GSD). Until the
 kubectl -n groot create secret generic groot-trigger-api \
   --from-literal=GROOT_TRIGGER_API_KEY='replace-me'
 
-# Optional: S3 creds for collect Job (same pattern as groot-selfhosted lab):
+# Optional: private registry pull (uncomment imagePullSecrets in manifests.yaml):
+# kubectl -n groot create secret docker-registry regcred \
+#   --docker-server=REGISTRY_HOST \
+#   --docker-username=USER \
+#   --docker-password=PASS
+
+# Optional: object-storage creds for the collect Job (enable upload in groot-config
+# and set GROOT_ENVFROM_SECRET on the Deployment):
 # kubectl -n groot create secret generic groot-s3 \
 #   --from-literal=AWS_ACCESS_KEY_ID=... \
 #   --from-literal=AWS_SECRET_ACCESS_KEY=... \
-#   --from-literal=AWS_REGION=EU
+#   --from-literal=AWS_REGION=...
 
 kubectl apply -f deploy/k8s/manifests.yaml
 kubectl -n groot port-forward svc/groot-trigger 8080:8080
@@ -19,6 +26,8 @@ kubectl -n groot port-forward svc/groot-trigger 8080:8080
 ```
 
 ClusterIP only by default. Set `GROOT_TRIGGER_TRUSTED_PROXIES` only behind a real Ingress.
+
+The trigger container uses distroless `nonroot`; the Deployment sets numeric `runAsUser` / `runAsGroup` `65532` so `runAsNonRoot` succeeds.
 
 RBAC:
 

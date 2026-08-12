@@ -99,7 +99,21 @@ data:
       namespaces:
         - kube-system
         - default
-    # upload.s3: configure when using envFrom Secret (AWS_*)
+      include_pod_logs: true
+      include_node_details: true
+      include_node_logs: false
+      include_pod_metrics: true
+    # Optional post-collect upload (enable + set GROOT_ENVFROM_SECRET on the Deployment).
+    # upload:
+    #   enabled: true
+    #   continue_on_error: true
+    #   timeout: 10m
+    #   s3:
+    #     enabled: true
+    #     bucket: YOUR_BUCKET
+    #     region: YOUR_REGION
+    #     endpoint: https://s3.example.com
+    #     key_prefix: captures/
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -121,9 +135,12 @@ spec:
         app.kubernetes.io/part-of: groot-trigger
     spec:
       serviceAccountName: groot-trigger
+      # Optional: image pull secret for a private registry.
+      # imagePullSecrets:
+      #   - name: regcred
       containers:
         - name: trigger
-          # Pin v-prefixed tags when GHCR publishes (GoReleaser). Local: rebuild image.
+          # Pin v-prefixed tags when GHCR publishes (GoReleaser).
           image: ghcr.io/hrodrig/groot-trigger:v0.1.0
           imagePullPolicy: IfNotPresent
           ports:
@@ -149,7 +166,9 @@ spec:
                 secretKeyRef:
                   name: groot-trigger-api
                   key: GROOT_TRIGGER_API_KEY
-            # Optional: GROOT_ENVFROM_SECRET: groot-s3
+            # Optional: Job envFrom Secret for collect upload (AWS_* / provider creds).
+            # - name: GROOT_ENVFROM_SECRET
+            #   value: groot-s3
             # Optional: GROOT_TRIGGER_TRUSTED_PROXIES (CIDRs)
           readinessProbe:
             httpGet:
@@ -174,6 +193,9 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             runAsNonRoot: true
+            # Distroless nonroot is a named user in the image; kube needs a numeric UID.
+            runAsUser: 65532
+            runAsGroup: 65532
             capabilities:
               drop: ["ALL"]
 ---
