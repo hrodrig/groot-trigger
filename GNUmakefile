@@ -17,7 +17,7 @@ LDFLAGS     := -s -w \
 	-X 'main.branch=$(BRANCH)' \
 	-X 'main.buildDate=$(BUILDDATE)'
 
-GOLANGCI_LINT_VERSION ?= v2.5.0
+GOLANGCI_LINT_VERSION ?= v2.12.2
 # Gate like groot: release-check runs cover; override locally with COVER_MIN=0 if needed.
 COVER_MIN ?= 80
 GRYPE_FAIL_ON ?= high
@@ -187,7 +187,7 @@ goreleaser-check:
 		echo "$(YELLOW)goreleaser check skipped: no git remote origin (local-first)$(RESET)"; \
 	fi
 
-# Local-friendly: does not require git remote origin (remote deferred).
+# goreleaser-check skips gracefully only if origin is missing.
 release-check:
 	@test -f VERSION || { echo "VERSION file is required"; exit 1; }
 	@echo "Release version: $(VERSION) (tag: $(TAG))"
