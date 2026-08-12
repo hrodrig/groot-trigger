@@ -1,0 +1,75 @@
+version: 2
+
+project_name: groot-trigger
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: groot-trigger
+    main: ./cmd/groot-trigger
+    binary: groot-trigger
+    flags:
+      - -trimpath
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s
+      - -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.ShortCommit}}
+      - -X main.branch={{.Branch}}
+      - -X main.buildDate={{.Date}}
+
+archives:
+  - id: groot-trigger-dist
+    ids:
+      - groot-trigger
+    formats: [tar.gz]
+    name_template: "groot-trigger_{{ .Tag }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - src: LICENSE
+        dst: share/doc/groot-trigger/LICENSE
+      - src: README.md
+        dst: share/doc/groot-trigger/README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: git
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+dockers_v2:
+  - dockerfile: Dockerfile.release
+    ids:
+      - groot-trigger
+    images:
+      - ghcr.io/hrodrig/groot-trigger
+    tags:
+      - "v{{ .Version }}"
+      - "{{ if not .IsSnapshot }}latest{{ end }}"
+    labels:
+      org.opencontainers.image.title: "groot-trigger"
+      org.opencontainers.image.description: "On-demand HTTP API that creates Kubernetes Jobs running groot collect"
+      org.opencontainers.image.source: "https://github.com/hrodrig/groot-trigger"
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.created: "{{ .Date }}"

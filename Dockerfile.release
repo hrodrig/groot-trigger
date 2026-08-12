@@ -1,0 +1,14 @@
+# syntax=docker/dockerfile:1
+# Runtime image for GoReleaser dockers_v2: binaries laid out as linux/<arch>/<binary>.
+ARG TARGETPLATFORM
+FROM gcr.io/distroless/static-debian13:nonroot
+ARG TARGETPLATFORM
+WORKDIR /app
+LABEL org.opencontainers.image.title="groot-trigger"
+LABEL org.opencontainers.image.description="On-demand HTTP API that creates Kubernetes Jobs running groot collect"
+LABEL org.opencontainers.image.source="https://github.com/hrodrig/groot-trigger"
+LABEL org.opencontainers.image.authors="https://github.com/hrodrig/groot-trigger"
+COPY ${TARGETPLATFORM}/groot-trigger /app/groot-trigger
+USER nonroot:nonroot
+EXPOSE 8080
+ENTRYPOINT ["/app/groot-trigger"]
