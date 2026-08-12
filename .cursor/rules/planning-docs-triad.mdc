@@ -1,0 +1,21 @@
+---
+description: SPEC + ROADMAP + CHANGELOG planning triad
+alwaysApply: true
+---
+
+# Planning documentation triad
+
+| Document | Role |
+|----------|------|
+| `docs/SPECIFICATIONS.md` | Behavior contract **today** |
+| `ROADMAP.md` | Planned work, global item IDs |
+| `CHANGELOG.md` | What **shipped** per release (Keep a Changelog) |
+
+**README.md** is user-facing; **SPEC** is the testable contract.
+
+## When shipping work
+
+1. Implement against **SPEC** (update SPEC if behavior changes).
+2. Mark roadmap item **Done (vX.Y.Z)** in `ROADMAP.md`.
+3. Add **CHANGELOG** bullets under `[Unreleased]`.
+4. Sync **VERSION** and run **`make release-check`** before tag (when remote exists).

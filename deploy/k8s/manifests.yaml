@@ -1,0 +1,194 @@
+# MVP flat manifests for groot-trigger.
+# Namespace `groot` assumed (create if missing). Do not commit real API keys.
+#
+# kubectl apply -f deploy/k8s/manifests.yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: groot-trigger
+  namespace: groot
+  labels:
+    app.kubernetes.io/name: groot-trigger
+    app.kubernetes.io/part-of: groot-trigger
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: groot
+  namespace: groot
+  labels:
+    app.kubernetes.io/name: groot
+    app.kubernetes.io/part-of: groot-trigger
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: groot-trigger
+  namespace: groot
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: groot-trigger
+  namespace: groot
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: groot-trigger
+subjects:
+  - kind: ServiceAccount
+    name: groot-trigger
+    namespace: groot
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: groot-collector
+  labels:
+    app.kubernetes.io/part-of: groot-trigger
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "events", "nodes", "namespaces", "services", "configmaps", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: groot-collector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: groot-collector
+subjects:
+  - kind: ServiceAccount
+    name: groot
+    namespace: groot
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: groot-config
+  namespace: groot
+data:
+  groot.yml: |
+    output_dir: /out
+    file_prefix: groot-capture
+    collection:
+      timeout: 20m
+      worker_concurrency: 4
+      namespaces:
+        - kube-system
+        - default
+    # upload.s3: configure when using envFrom Secret (AWS_*)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: groot-trigger
+  namespace: groot
+  labels:
+    app.kubernetes.io/name: groot-trigger
+    app.kubernetes.io/part-of: groot-trigger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: groot-trigger
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: groot-trigger
+        app.kubernetes.io/part-of: groot-trigger
+    spec:
+      serviceAccountName: groot-trigger
+      containers:
+        - name: trigger
+          # Pin v-prefixed tags when GHCR publishes (GoReleaser). Local: rebuild image.
+          image: ghcr.io/hrodrig/groot-trigger:v0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: LISTEN_ADDR
+              value: ":8080"
+            - name: GROOT_IMAGE
+              value: ghcr.io/hrodrig/groot:v1.1.1
+            - name: GROOT_NAMESPACE
+              value: groot
+            - name: GROOT_CONFIGMAP
+              value: groot-config
+            - name: GROOT_JOB_SA
+              value: groot
+            - name: GROOT_TRIGGER_LOG_FORMAT
+              value: json
+            - name: GROOT_TRIGGER_LOG_LEVEL
+              value: info
+            - name: GROOT_TRIGGER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: groot-trigger-api
+                  key: GROOT_TRIGGER_API_KEY
+            # Optional: GROOT_ENVFROM_SECRET: groot-s3
+            # Optional: GROOT_TRIGGER_TRUSTED_PROXIES (CIDRs)
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: groot-trigger
+  namespace: groot
+  labels:
+    app.kubernetes.io/name: groot-trigger
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: groot-trigger
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

@@ -19,6 +19,7 @@ On-demand HTTP companion that creates a Kubernetes **Job** running [`groot`](htt
 
 - **Contract:** [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) (approved)
 - **Code:** stub only (`groot-trigger version`); full app via GSD
+- **Scaffold:** Docker / Make / GoReleaser / CI / `deploy/k8s` / SECURITY / CONTRIBUTING
 - **Remote:** local git only until GitHub repo exists
 
 ## Build (local)
@@ -26,7 +27,11 @@ On-demand HTTP companion that creates a Kubernetes **Job** running [`groot`](htt
 ```bash
 make build
 ./bin/groot-trigger version
+make ci          # fmt-check + lint + gocyclo + test
+make security    # govulncheck + gocyclo + grype (needs network / Docker for tools)
 ```
+
+Deploy sketch: [deploy/k8s/README.md](deploy/k8s/README.md)
 
 ## Language
 

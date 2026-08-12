@@ -1,0 +1,9 @@
+---
+description: Do not hand-edit files under .git/
+alwaysApply: true
+---
+
+# No Direct Edits Under `.git/`
+
+- **Do not** intentionally create, modify, move, or delete anything **inside** a repository’s **`.git/`** directory using generic file tools.
+- **Use Git’s own commands** for all repository metadata and history.

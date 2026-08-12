@@ -1,0 +1,12 @@
+---
+description: Release checks — make release-check before tags
+alwaysApply: true
+---
+
+# Release: MANDATORY checks (when tagging)
+
+Before merging to `main` or creating a release tag, run **`make release-check`**.
+
+Until `origin` exists, `goreleaser check` is skipped (local-first). After the remote is added, release-check must pass fully before the first tag.
+
+Optional: `STRICT_RELEASE=1` also runs `make docker-scan`.

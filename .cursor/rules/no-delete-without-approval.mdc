@@ -1,0 +1,15 @@
+---
+description: Never delete files unless the user explicitly approves that deletion
+alwaysApply: true
+---
+
+# No Delete Without Explicit Approval
+
+- **Do not** delete files or directories (agent **delete** tool, `rm`, `git clean`, emptying trash, etc.) **unless** the user has **explicitly** approved deleting **those** paths in the current conversation.
+- **Do not** assume approval from vague wording (“clean up”, “tidy”) — **list** what you would remove and **ask** for a clear yes (or exact paths) before deleting.
+
+**Counts as approval:** the user says “delete `path/to/file`”, “remove the backup copy”, “drop `foo.tmp`”, or **“yes, delete those”** after you proposed a specific list.
+
+**Does not count:** deleting as part of an automated refactor without naming files; deleting “obvious” junk without asking; using shell `rm -rf` to “fix” something without prior OK.
+
+If deletion is optional, prefer **leaving files** or **renaming** to `.bak` only if the user asked for that pattern.

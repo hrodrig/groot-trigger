@@ -1,0 +1,12 @@
+---
+description: Commit message review — show message and wait for approval
+alwaysApply: true
+---
+
+# Commit message review
+
+Before running `git commit` (or `git commit --amend`):
+
+1. **Show the proposed commit message** to the user in full.
+2. **Wait for explicit approval** before executing the commit.
+3. Do not commit until the user confirms or requests changes to the message.
