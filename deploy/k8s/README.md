@@ -7,11 +7,11 @@ Apply after the application implements `docs/SPECIFICATIONS.md` (GSD). Until the
 kubectl -n groot create secret generic groot-trigger-api \
   --from-literal=GROOT_TRIGGER_API_KEY='replace-me'
 
-# Optional: private registry pull (uncomment imagePullSecrets in manifests.yaml):
-# kubectl -n groot create secret docker-registry regcred \
-#   --docker-server=REGISTRY_HOST \
-#   --docker-username=USER \
-#   --docker-password=PASS
+# Optional: image pull secret if GHCR (or another registry) is private:
+# kubectl -n groot create secret docker-registry YOUR_PULL_SECRET \
+#   --docker-server=YOUR_REGISTRY_HOST \
+#   --docker-username=YOUR_USERNAME \
+#   --docker-password=YOUR_PASSWORD
 
 # Optional: object-storage creds for the collect Job (enable upload in groot-config
 # and set GROOT_ENVFROM_SECRET on the Deployment):

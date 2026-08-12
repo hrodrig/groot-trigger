@@ -135,9 +135,9 @@ spec:
         app.kubernetes.io/part-of: groot-trigger
     spec:
       serviceAccountName: groot-trigger
-      # Optional: image pull secret for a private registry.
+      # Optional: image pull secret if the trigger/groot images are not public.
       # imagePullSecrets:
-      #   - name: regcred
+      #   - name: YOUR_PULL_SECRET
       containers:
         - name: trigger
           # Pin v-prefixed tags when GHCR publishes (GoReleaser).
