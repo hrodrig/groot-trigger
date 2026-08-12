@@ -1,4 +1,4 @@
-# MVP flat manifests for groot-trigger.
+# Flat Kubernetes manifests for groot-trigger.
 # Namespace `groot` assumed (create if missing). Do not commit real API keys.
 #
 # kubectl apply -f deploy/k8s/manifests.yaml
@@ -103,7 +103,8 @@ data:
       include_node_details: true
       include_node_logs: false
       include_pod_metrics: true
-    # Optional post-collect upload (enable + set GROOT_ENVFROM_SECRET on the Deployment).
+    # Optional post-collect upload (groot: s3 / gcs / sftp; HTTP(S)/WebDAV planned upstream).
+    # Enable + set GROOT_ENVFROM_SECRET on the Deployment. Schema: groot SPEC §10.
     # upload:
     #   enabled: true
     #   continue_on_error: true
@@ -114,6 +115,12 @@ data:
     #     region: YOUR_REGION
     #     endpoint: https://s3.example.com
     #     key_prefix: captures/
+    #   sftp:
+    #     enabled: true
+    #     host: sftp.example.com
+    #     user: YOUR_SFTP_USER
+    #     remote_dir: /incoming
+    #     known_hosts_file: /etc/groot/known_hosts
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -166,9 +173,9 @@ spec:
                 secretKeyRef:
                   name: groot-trigger-api
                   key: GROOT_TRIGGER_API_KEY
-            # Optional: Job envFrom Secret for collect upload (AWS_* / provider creds).
+            # Optional: Job envFrom Secret for collect upload (AWS_* / GCS / GROOT_UPLOAD_SFTP_*).
             # - name: GROOT_ENVFROM_SECRET
-            #   value: groot-s3
+            #   value: YOUR_UPLOAD_SECRET
             # Optional: GROOT_TRIGGER_TRUSTED_PROXIES (CIDRs)
           readinessProbe:
             httpGet:
