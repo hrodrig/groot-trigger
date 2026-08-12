@@ -18,17 +18,18 @@ On-demand HTTP companion that creates a Kubernetes **Job** running [`groot`](htt
 ## Status
 
 - **Contract:** [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) (approved)
-- **Code:** stub only (`groot-trigger version`); full app via GSD
-- **Scaffold:** Docker / Make / GoReleaser / CI / `deploy/k8s` / SECURITY / CONTRIBUTING
+- **Code:** MVP HTTP → Job (`docs/SPECIFICATIONS.md`); GSD Phase 1
+- **Scaffold:** Docker / Make / GoReleaser / CI / BSD / `deploy/k8s`
 - **Remote:** local git only until GitHub repo exists
 
-## Build (local)
+## Build / run (local)
 
 ```bash
 make build
-./bin/groot-trigger version
-make ci          # fmt-check + lint + gocyclo + test
-make security    # govulncheck + gocyclo + grype (needs network / Docker for tools)
+export GROOT_TRIGGER_API_KEY='replace-me'
+./bin/groot-trigger                 # listens on :8080
+# open http://127.0.0.1:8080/v1/collect
+make ci
 ```
 
 Deploy sketch: [deploy/k8s/README.md](deploy/k8s/README.md)

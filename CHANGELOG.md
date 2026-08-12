@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `deploy/k8s` flat manifests (ClusterIP, dual SA, collector ClusterRole)
 - CONTRIBUTING.md, SECURITY.md, `.cursor` rules (English, git-flow, triad, no-delete)
 - BSD packaging: FreeBSD/OpenBSD port skeletons, `contrib/man/man1/groot-trigger.1`, `make dist-freebsd` / `dist-openbsd` / `port-*-sync` / `man-sync`; GoReleaser builds freebsd+openbsd
+- MVP application (SPEC): `GET/POST /v1/collect`, API key auth, rate limits, trusted proxies, slog access logs, client-go Job create + single-flight 409, vanilla HTML UI
 
 ## [0.1.0] — TBD
 
