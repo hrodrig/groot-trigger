@@ -25,13 +25,13 @@ make ci
 
 Maintainers before tag: `make release-check` (includes `make cover` with **`COVER_MIN=80`**; optional `STRICT_RELEASE=1` for image scan).
 
-Release (after remote + `develop` → `main`): annotated tag `vX.Y.Z` on `main` → push tag → `.github/workflows/release.yml` runs GoReleaser (binaries + `ghcr.io/hrodrig/groot-trigger:vX.Y.Z`).
+Release: open PR `develop` → `main` (`gh pr create`), merge on GitHub, then annotated tag `vX.Y.Z` on `main` → push tag → `.github/workflows/release.yml` runs GoReleaser (binaries + `ghcr.io/hrodrig/groot-trigger:vX.Y.Z`).
 
 ## Scope
 
 - **In:** HTTP trigger, Job create, deploy manifests for the trigger.
 - **Out:** GROOT CLI / collector logic → [groot](https://github.com/hrodrig/groot). Scheduled CronJob packaging → [groot-selfhosted](https://github.com/hrodrig/groot-selfhosted).
 
-## Local-first
+## Branches
 
-This repository may start without a GitHub remote. Prefer local commits on `develop` until `origin` exists; do not assume CI runs until the remote is connected.
+Day-to-day work on **`develop`**. Do not commit features on **`main`**. CI runs on push/PR to `main` and `develop`.

@@ -187,7 +187,7 @@ goreleaser-check:
 		echo "$(YELLOW)goreleaser check skipped: no git remote origin (local-first)$(RESET)"; \
 	fi
 
-# Local-friendly: does not require git remote origin (remote deferred).
+# goreleaser-check skips gracefully only if origin is missing.
 release-check:
 	@test -f VERSION || { echo "VERSION file is required"; exit 1; }
 	@echo "Release version: $(VERSION) (tag: $(TAG))"
