@@ -33,6 +33,7 @@ make security    # govulncheck + gocyclo + grype (needs network / Docker for too
 
 Deploy sketch: [deploy/k8s/README.md](deploy/k8s/README.md)
 
+BSD ports: [contrib/README.md](contrib/README.md) (`make dist-freebsd`, `make dist-openbsd`)
 ## Language
 
 English only for all project artifacts.

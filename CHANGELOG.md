@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI workflow (lint + test) — runs once remote exists
 - `deploy/k8s` flat manifests (ClusterIP, dual SA, collector ClusterRole)
 - CONTRIBUTING.md, SECURITY.md, `.cursor` rules (English, git-flow, triad, no-delete)
+- BSD packaging: FreeBSD/OpenBSD port skeletons, `contrib/man/man1/groot-trigger.1`, `make dist-freebsd` / `dist-openbsd` / `port-*-sync` / `man-sync`; GoReleaser builds freebsd+openbsd
 
 ## [0.1.0] — TBD
 

@@ -9,6 +9,7 @@
 | #3 | `.github/workflows/ci.yml` | Done (local; needs remote to run) |
 | #4 | `deploy/k8s` flat manifests + README | Done (sketch; needs app) |
 | #5 | CONTRIBUTING / SECURITY / `.cursor` rules | Done (local) |
+| #5b | BSD ports (FreeBSD/OpenBSD) + man + dist-* Make targets | Done (local) |
 | #6 | GSD: HTTP server, API key, rate limit, trusted proxies, vanilla UI | Pending |
 | #7 | GSD: client-go Job create + single-flight 409 | Pending |
 | #8 | Helm chart (optional thin wrap of flat manifests) | Pending |

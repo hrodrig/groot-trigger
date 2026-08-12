@@ -18,6 +18,8 @@ builds:
     goos:
       - linux
       - darwin
+      - freebsd
+      - openbsd
     goarch:
       - amd64
       - arm64
@@ -40,6 +42,8 @@ archives:
         dst: share/doc/groot-trigger/LICENSE
       - src: README.md
         dst: share/doc/groot-trigger/README.md
+      - src: contrib/man/man1/groot-trigger.1
+        dst: share/man/man1/groot-trigger.1
 
 checksum:
   name_template: checksums.txt

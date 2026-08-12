@@ -26,6 +26,9 @@ STRICT_RELEASE ?= 0
 IMAGE     ?= $(APP_NAME):local
 IMAGE_AMD64 ?= $(IMAGE)-amd64
 PLATFORMS ?= linux/amd64,linux/arm64
+DIST          := dist
+FREEBSD_ARCH  ?= amd64
+OPENBSD_ARCH  ?= amd64
 
 check-docker = @docker info >/dev/null 2>&1 || { echo "Error: Docker is not running. Start Docker and try again."; exit 1; }
 
@@ -50,7 +53,8 @@ endif
 
 .PHONY: help all build test cover fmt fmt-check lint-fix lint vet run clean install \
 	docker-build docker-build-amd64 docker-scan goreleaser-check release-check ci \
-	gocyclo govulncheck vulncheck grype security
+	gocyclo govulncheck vulncheck grype security \
+	dist-freebsd dist-openbsd port-freebsd-sync port-openbsd-sync man-sync
 
 help:
 	@echo "$(GREEN)groot-trigger$(RESET) — on-demand HTTP → groot Job"
@@ -81,6 +85,13 @@ help:
 	@echo "  $(GREEN)docker-scan$(RESET)        docker-build + Grype image scan"
 	@echo "  $(GREEN)goreleaser-check$(RESET)   goreleaser check"
 	@echo "  $(GREEN)release-check$(RESET)      VERSION + goreleaser + fmt-check + lint + cover + security"
+	@echo ""
+	@echo "$(YELLOW)BSD ports:$(RESET)"
+	@echo "  $(GREEN)man-sync$(RESET)            Bump .TH in contrib/man from VERSION"
+	@echo "  $(GREEN)port-freebsd-sync$(RESET)   PORTVERSION in contrib/freebsd/Makefile"
+	@echo "  $(GREEN)port-openbsd-sync$(RESET)   Version fields in contrib/openbsd/port/Makefile"
+	@echo "  $(GREEN)dist-freebsd$(RESET)        Tarball FREEBSD_ARCH=$(FREEBSD_ARCH)"
+	@echo "  $(GREEN)dist-openbsd$(RESET)        Tarball OPENBSD_ARCH=$(OPENBSD_ARCH)"
 	@echo ""
 	@echo "$(CYAN)Contract:$(RESET) docs/SPECIFICATIONS.md  |  VERSION=$(VERSION)  |  COVER_MIN=$(COVER_MIN)"
 
@@ -188,3 +199,77 @@ release-check:
 	@$(MAKE) security
 	@if [ "$(STRICT_RELEASE)" = "1" ]; then $(MAKE) docker-scan; fi
 	@echo "$(GREEN)release-check OK$(RESET)"
+
+man-sync:
+	@today=$$(date +%Y-%m-%d); \
+	f=contrib/man/man1/groot-trigger.1; \
+	test -f "$$f" || { echo "Error: $$f not found"; exit 1; }; \
+	sed -i.bak "s/^\.TH .*/.TH GROOT-TRIGGER 1 \"$$today\" \"groot-trigger v$(VERSION)\" \"User Commands\"/" "$$f"; \
+	rm -f "$$f.bak"; \
+	echo "Updated $$f .TH to groot-trigger v$(VERSION) ($$today)"
+
+port-freebsd-sync:
+	@[ -n "$(VERSION)" ] || { echo "Error: VERSION file empty or missing"; exit 1; }
+	@sed -i.bak "s/^PORTVERSION=.*/PORTVERSION=\t$(VERSION)/" contrib/freebsd/Makefile
+	@rm -f contrib/freebsd/Makefile.bak
+	@echo "Updated contrib/freebsd/Makefile PORTVERSION to $(VERSION)"
+
+port-openbsd-sync:
+	@[ -n "$(VERSION)" ] || { echo "Error: VERSION file empty or missing"; exit 1; }
+	@test -f contrib/openbsd/port/Makefile || { echo "Error: contrib/openbsd/port/Makefile not found"; exit 1; }
+	@sed -i.bak \
+	  -e 's#^DISTNAME =.*#DISTNAME =\tgroot-trigger_v$(VERSION)_openbsd_$${MACHINE_ARCH:S/aarch64/arm64/}#' \
+	  -e 's#^PKGNAME =.*#PKGNAME =\tgroot-trigger-$(VERSION)#' \
+	  -e 's#^MASTER_SITES =.*#MASTER_SITES =\thttps://github.com/hrodrig/groot-trigger/releases/download/v$(VERSION)/#' \
+	  -e 's#^DISTFILES =.*#DISTFILES =\tgroot-trigger_v$(VERSION)_openbsd_$${MACHINE_ARCH:S/aarch64/arm64/}.tar.gz#' \
+	  contrib/openbsd/port/Makefile
+	@rm -f contrib/openbsd/port/Makefile.bak
+	@echo "Updated contrib/openbsd/port/Makefile to $(VERSION)"
+
+dist-freebsd:
+	@set -e; \
+	ver="$(VERSION)"; \
+	[ -n "$$ver" ] || { echo "Error: VERSION file is required"; exit 1; }; \
+	echo "$$ver" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Error: VERSION must be semantic MAJOR.MINOR.PATCH (got: $$ver)"; exit 1; }; \
+	echo "$(FREEBSD_ARCH)" | grep -qE '^(amd64|arm64)$$' || { echo "Error: FREEBSD_ARCH must be amd64 or arm64"; exit 1; }; \
+	arch="$(FREEBSD_ARCH)"; \
+	out="$(DIST)/groot-trigger_v$${ver}_freebsd_$$arch.tar.gz"; \
+	stage="/tmp/groot-trigger-dist-root-$$PPID"; \
+	tmpbin="$(DIST)/groot-trigger-freebsd-$$arch-$$PPID"; \
+	echo "Building groot-trigger for FreeBSD $$arch with VERSION=v$$ver..."; \
+	mkdir -p "$(DIST)"; \
+	GOOS=freebsd GOARCH="$$arch" go build -trimpath -ldflags "$(LDFLAGS)" -o "$$tmpbin" ./cmd/groot-trigger; \
+	rm -rf "$$stage"; \
+	mkdir -p "$$stage/share/doc/groot-trigger" "$$stage/share/man/man1"; \
+	cp "$$tmpbin" "$$stage/groot-trigger"; \
+	rm -f "$$tmpbin"; \
+	cp LICENSE "$$stage/share/doc/groot-trigger/LICENSE"; \
+	cp README.md "$$stage/share/doc/groot-trigger/README.md"; \
+	cp contrib/man/man1/groot-trigger.1 "$$stage/share/man/man1/groot-trigger.1"; \
+	tar -C "$$stage" -czf "$$out" .; \
+	rm -rf "$$stage"; \
+	echo "Wrote $$out"
+
+dist-openbsd:
+	@set -e; \
+	ver="$(VERSION)"; \
+	[ -n "$$ver" ] || { echo "Error: VERSION file is required"; exit 1; }; \
+	echo "$$ver" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Error: VERSION must be semantic MAJOR.MINOR.PATCH (got: $$ver)"; exit 1; }; \
+	echo "$(OPENBSD_ARCH)" | grep -qE '^(amd64|arm64)$$' || { echo "Error: OPENBSD_ARCH must be amd64 or arm64"; exit 1; }; \
+	arch="$(OPENBSD_ARCH)"; \
+	out="$(DIST)/groot-trigger_v$${ver}_openbsd_$$arch.tar.gz"; \
+	stage="/tmp/groot-trigger-openbsd-dist-root-$$PPID"; \
+	tmpbin="$(DIST)/groot-trigger-openbsd-$$arch-$$PPID"; \
+	echo "Building groot-trigger for OpenBSD $$arch with VERSION=v$$ver..."; \
+	mkdir -p "$(DIST)"; \
+	GOOS=openbsd GOARCH="$$arch" go build -trimpath -ldflags "$(LDFLAGS)" -o "$$tmpbin" ./cmd/groot-trigger; \
+	rm -rf "$$stage"; \
+	mkdir -p "$$stage/share/doc/groot-trigger" "$$stage/share/man/man1"; \
+	cp "$$tmpbin" "$$stage/groot-trigger"; \
+	rm -f "$$tmpbin"; \
+	cp LICENSE "$$stage/share/doc/groot-trigger/LICENSE"; \
+	cp README.md "$$stage/share/doc/groot-trigger/README.md"; \
+	cp contrib/man/man1/groot-trigger.1 "$$stage/share/man/man1/groot-trigger.1"; \
+	tar -C "$$stage" -czf "$$out" .; \
+	rm -rf "$$stage"; \
+	echo "Wrote $$out"

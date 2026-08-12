@@ -34,3 +34,5 @@
 !docs/**
 !deploy/
 !deploy/**
+!contrib/
+!contrib/**
