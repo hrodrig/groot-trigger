@@ -36,3 +36,5 @@
 !deploy/**
 !contrib/
 !contrib/**
+!.planning/
+!.planning/**

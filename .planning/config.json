@@ -1,0 +1,7 @@
+{
+  "mode": "yolo",
+  "granularity": "standard",
+  "commit_docs": true,
+  "parallelization": false,
+  "response_language": "es"
+}
