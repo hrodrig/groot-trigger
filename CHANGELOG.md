@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `deploy/k8s`: distroless numeric `runAsUser`/`runAsGroup` `65532`; optional commented `imagePullSecrets` / `GROOT_ENVFROM_SECRET` / upload skeleton; GHCR image pin (#4)
 - CI / Make: pin **golangci-lint v2.12.2** (Go 1.26.5 support; v2.5.0 binaries fail on CI)
+- Make `grype`: drop in-recipe `check-docker` so the container fallback works on GitHub Actions (align with groot)
 
 ### Notes
 

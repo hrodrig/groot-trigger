@@ -156,7 +156,6 @@ grype:
 		grype dir:. $(GRYPE_DIR_EXCLUDES) --fail-on $(GRYPE_FAIL_ON); \
 	else \
 		echo "grype not found locally, using container image..."; \
-		$(check-docker); \
 		docker run --rm --pull=always -v "$(CURDIR):/workspace" anchore/grype:latest \
 			dir:/workspace $(GRYPE_DIR_EXCLUDES) --fail-on $(GRYPE_FAIL_ON); \
 	fi
