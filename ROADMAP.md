@@ -4,9 +4,9 @@
 
 | ID | Item | Status |
 |----|------|--------|
-| #1 | SPEC + packaging scaffold (Docker, Make, GoReleaser) | Done (local) |
+| #1 | SPEC + packaging scaffold (Docker, Make, GoReleaser + cosign/SBOM) | Done (local) |
 | #2 | Make security targets (`govulncheck`, `gocyclo`, `grype`) | Done (local) |
-| #3 | `.github/workflows/ci.yml` | Done (local; needs remote to run) |
+| #3 | `.github/workflows/ci.yml` + `release.yml` (tag → GHCR) | Done (local; needs remote to run) |
 | #4 | `deploy/k8s` flat manifests + README | Done |
 | #5 | CONTRIBUTING / SECURITY / `.cursor` rules | Done (local) |
 | #5b | BSD ports (FreeBSD/OpenBSD) + man + dist-* Make targets | Done (local) |

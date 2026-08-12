@@ -25,6 +25,8 @@ make ci
 
 Maintainers before tag: `make release-check` (includes `make cover` with **`COVER_MIN=80`**; optional `STRICT_RELEASE=1` for image scan).
 
+Release (after remote + `develop` → `main`): annotated tag `vX.Y.Z` on `main` → push tag → `.github/workflows/release.yml` runs GoReleaser (binaries + `ghcr.io/hrodrig/groot-trigger:vX.Y.Z`).
+
 ## Scope
 
 - **In:** HTTP trigger, Job create, deploy manifests for the trigger.

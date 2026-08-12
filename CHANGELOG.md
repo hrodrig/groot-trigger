@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stub `cmd/groot-trigger` (version only; HTTP/Job via GSD next)
 - Make security targets: `govulncheck`, `gocyclo`, `grype`, `security`, `docker-scan`; **`COVER_MIN=80`** gate in `make cover` / `release-check` (#10)
 - GitHub Actions CI workflow (lint + test) — runs once remote exists
+- GitHub Actions Release workflow: tag `v*` → GoReleaser (binaries, GHCR, cosign, SBOM)
 - `deploy/k8s` flat manifests (ClusterIP, dual SA, collector ClusterRole)
 - CONTRIBUTING.md, SECURITY.md, `.cursor` rules (English, git-flow, triad, no-delete)
 - BSD packaging: FreeBSD/OpenBSD port skeletons, `contrib/man/man1/groot-trigger.1`, `make dist-freebsd` / `dist-openbsd` / `port-*-sync` / `man-sync`; GoReleaser builds freebsd+openbsd

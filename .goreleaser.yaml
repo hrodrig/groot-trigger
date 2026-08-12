@@ -48,6 +48,20 @@ archives:
 checksum:
   name_template: checksums.txt
 
+# Cosign keyless signing (GitHub Actions OIDC). Requires id-token: write in release.yml.
+signs:
+  - cmd: cosign
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - "--output-signature=${signature}"
+      - "--output-certificate=${certificate}"
+      - "${artifact}"
+      - --yes
+    artifacts: checksum
+
 changelog:
   use: git
   sort: asc
@@ -57,12 +71,26 @@ changelog:
       - "^test:"
       - "^chore:"
       - "^ci:"
+      - "^\\.github:"
 
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
 
+sboms:
+  - id: groot-trigger-sbom-spdx
+    artifacts: source
+    documents:
+      - "groot-trigger_{{ .Version }}_sbom.spdx.json"
+    args: ["$artifact", "--output", "spdx-json=$document"]
+  - id: groot-trigger-sbom-cdx
+    artifacts: source
+    documents:
+      - "groot-trigger_{{ .Version }}_sbom.cyclonedx.json"
+    args: ["$artifact", "--output", "cyclonedx-json=$document"]
+
 dockers_v2:
   - dockerfile: Dockerfile.release
+    sbom: true
     ids:
       - groot-trigger
     images:
@@ -77,3 +105,12 @@ dockers_v2:
       org.opencontainers.image.version: "{{ .Version }}"
       org.opencontainers.image.revision: "{{ .FullCommit }}"
       org.opencontainers.image.created: "{{ .Date }}"
+
+docker_signs:
+  - cmd: cosign
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    args:
+      - sign
+      - "${artifact}@${digest}"
+      - --yes
