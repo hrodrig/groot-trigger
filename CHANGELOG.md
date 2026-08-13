@@ -7,12 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-08-12
+
 ### Changed
 
 - `deploy/k8s`: anonymize optional image-pull-secret sample (`YOUR_PULL_SECRET` / `YOUR_REGISTRY_HOST`; no lab-specific secret name)
-- Drop “MVP” from operator deploy docs and live SPEC (v0.1.0 is the shipped contract)
+- Drop “MVP” from operator deploy docs and live SPEC
 - Docs: post-collect upload is **groot** (`s3` / `gcs` / `sftp`); HTTP(S)/WebDAV planned upstream — not S3-only
-- Drop leftover “when GHCR publishes / after first release” wording; `v0.1.0` is on GHCR
+- Drop leftover “when GHCR publishes / after first release” wording
 - Collect Job: `readOnlyRootFilesystem`, numeric nonroot `65532`, emptyDir `/tmp`; `/out` stays emptyDir or `GROOT_OUT_PVC`
 
 ## [0.1.0] — 2026-08-12

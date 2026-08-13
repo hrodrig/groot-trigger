@@ -15,5 +15,6 @@
 | #8 | Helm chart (thin wrap of flat manifests) | Deferred — flat `deploy/k8s` enough for now; revisit if operators ask or copy-paste hurts |
 | #9 | First tagged release (`v0.1.0`) + GHCR | Done (v0.1.0) |
 | #10 | Raise `COVER_MIN` to 80 after tests exist | Done |
+| #11 | Collect Job `readOnlyRootFilesystem` + `/tmp` emptyDir | Done (v0.1.1) |
 
 Contract: [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md)

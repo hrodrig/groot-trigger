@@ -1,6 +1,6 @@
 # Flat Kubernetes manifests — groot-trigger
 
-Pin `ghcr.io/hrodrig/groot-trigger:v0.1.0` (GoReleaser; **`v`-prefixed** tags). Behavior: [docs/SPECIFICATIONS.md](../../docs/SPECIFICATIONS.md).
+Pin `ghcr.io/hrodrig/groot-trigger:v0.1.1` (GoReleaser; **`v`-prefixed** tags). Behavior: [docs/SPECIFICATIONS.md](../../docs/SPECIFICATIONS.md).
 
 ```bash
 # Create secrets first (do not commit real keys):

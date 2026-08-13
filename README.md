@@ -4,7 +4,7 @@
 
 **⚡** _In-cluster HTTP API that creates a Kubernetes Job running [`groot`](https://github.com/hrodrig/groot) collect_
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/hrodrig/groot-trigger/releases)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue)](https://github.com/hrodrig/groot-trigger/releases)
 [![Release](https://img.shields.io/github/v/release/hrodrig/groot-trigger?display_name=tag&label=release&logo=github)](https://github.com/hrodrig/groot-trigger/releases)
 [![Go](https://img.shields.io/badge/Go-1.26.5-00ADD8?logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
@@ -66,7 +66,7 @@ kubectl -n groot create secret generic groot-trigger-api \
 kubectl apply -f deploy/k8s/manifests.yaml
 ```
 
-Image: `ghcr.io/hrodrig/groot-trigger:v0.1.0` (GoReleaser; **`v`-prefixed** tags only).
+Image: `ghcr.io/hrodrig/groot-trigger:v0.1.1` (GoReleaser; **`v`-prefixed** tags only).
 
 Reach the UI/API via ClusterIP Service, Ingress, or a temporary port-forward from a machine that can reach the cluster API/network:
 
