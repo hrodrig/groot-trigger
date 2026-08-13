@@ -160,6 +160,30 @@ func TestCreateWithPVCAndSecret(t *testing.T) {
 	if j.Spec.Template.Spec.Volumes[1].PersistentVolumeClaim == nil {
 		t.Fatal("expected pvc volume")
 	}
+}
+
+func TestCreateJobReadOnlyRootfs(t *testing.T) {
+	cs := fake.NewSimpleClientset()
+	s := &K8sStarter{
+		Client: cs,
+		Cfg: config.Config{
+			GrootImage:     "ghcr.io/hrodrig/groot:v1.1.1",
+			GrootConfigMap: "groot-config",
+			GrootConfigKey: "groot.yml",
+			GrootJobSA:     "groot",
+			JobTTLSeconds:  60,
+		},
+		NS: "groot",
+	}
+	res, err := s.Create(context.Background(), "aabbccdd", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	j, err := cs.BatchV1().Jobs("groot").Get(context.Background(), res.JobName, metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := j.Spec.Template.Spec.Containers[0]
 	sc := c.SecurityContext
 	if sc == nil || sc.ReadOnlyRootFilesystem == nil || !*sc.ReadOnlyRootFilesystem {
 		t.Fatal("expected readOnlyRootFilesystem")
