@@ -1,6 +1,6 @@
 # groot-trigger — specifications
 
-**Status:** Approved (2026-08-12). Behavior contract for **v0.1.0**.  
+**Status:** Approved (2026-08-12). Behavior contract for **v0.1.1**.  
 **Repo:** [github.com/hrodrig/groot-trigger](https://github.com/hrodrig/groot-trigger)  
 **Design history:** [docs/superpowers/specs/2026-08-12-groot-trigger-design.md](superpowers/specs/2026-08-12-groot-trigger-design.md)  
 **Not in scope:** GROOT CLI behavior; Helm CronJob packaging (**groot** / **groot-selfhosted**).
