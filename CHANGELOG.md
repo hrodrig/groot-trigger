@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drop “MVP” from operator deploy docs and live SPEC (v0.1.0 is the shipped contract)
 - Docs: post-collect upload is **groot** (`s3` / `gcs` / `sftp`); HTTP(S)/WebDAV planned upstream — not S3-only
 - Drop leftover “when GHCR publishes / after first release” wording; `v0.1.0` is on GHCR
+- Collect Job: `readOnlyRootFilesystem`, numeric nonroot `65532`, emptyDir `/tmp`; `/out` stays emptyDir or `GROOT_OUT_PVC`
 
 ## [0.1.0] — 2026-08-12
 

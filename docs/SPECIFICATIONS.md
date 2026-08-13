@@ -186,7 +186,8 @@ Readiness: `200` if in-cluster config / Job client can be constructed (lightweig
 - **Image:** configurable; default `ghcr.io/hrodrig/groot:v1.1.1` (GHCR publishes **`v`-prefixed** tags only)
 - **Args:** `collect --config /config/groot.yml` (+ optional `--verbose` via values)
 - **ServiceAccount:** dedicated Job SA with **read-only** ClusterRole (same shape as groot-selfhosted collector RBAC)
-- **Volumes:** ConfigMap (groot.yml), PVC or emptyDir for `/out` (operator choice)
+- **Volumes:** ConfigMap (groot.yml, read-only), PVC or emptyDir for `/out` (operator choice), emptyDir for `/tmp` (read-only root filesystem)
+- **Security:** Job pod/container `runAsNonRoot` UID/GID `65532` (distroless `nonroot`), `readOnlyRootFilesystem: true`, drop `ALL` capabilities, `fsGroup: 65532` so PVC `/out` is writable
 - **envFrom:** optional Secret for groot upload (`AWS_*` for S3, GCS ADC, `GROOT_UPLOAD_SFTP_*` for SFTP)
 - **TTL:** `ttlSecondsAfterFinished` set so completed Jobs are garbage-collected
 
@@ -268,6 +269,7 @@ Startup config summary: image, namespace, rate limits, trusted-proxy on/off — 
 - Phase 2: OIDC / mTLS / short-lived tokens
 - Distroless / nonroot image for trigger binary
 - No shell in Job image (official groot distroless)
+- Collect Job: `readOnlyRootFilesystem`; writes only `/out` (and `/tmp` emptyDir)
 
 ## 10. Testing
 
