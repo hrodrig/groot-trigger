@@ -154,6 +154,9 @@ func (s *K8sStarter) Create(ctx context.Context, runID, message string) (Result,
 	args := []string{"collect", "--config", "/config/" + s.Cfg.GrootConfigKey}
 	args = append(args, s.Cfg.GrootExtraArgs...)
 
+	nonroot := int64(65532)
+	ro := true
+	no := false
 	container := corev1.Container{
 		Name:            "groot",
 		Image:           s.Cfg.GrootImage,
@@ -162,6 +165,15 @@ func (s *K8sStarter) Create(ctx context.Context, runID, message string) (Result,
 		VolumeMounts: []corev1.VolumeMount{
 			{Name: "config", MountPath: "/config", ReadOnly: true},
 			{Name: "out", MountPath: "/out"},
+			{Name: "tmp", MountPath: "/tmp"},
+		},
+		SecurityContext: &corev1.SecurityContext{
+			AllowPrivilegeEscalation: &no,
+			ReadOnlyRootFilesystem:   &ro,
+			RunAsNonRoot:             &ro,
+			RunAsUser:                &nonroot,
+			RunAsGroup:               &nonroot,
+			Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
 		},
 	}
 	if message != "" {
@@ -196,6 +208,10 @@ func (s *K8sStarter) Create(ctx context.Context, runID, message string) (Result,
 			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 		})
 	}
+	volumes = append(volumes, corev1.Volume{
+		Name:         "tmp",
+		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+	})
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -220,8 +236,14 @@ func (s *K8sStarter) Create(ctx context.Context, runID, message string) (Result,
 				Spec: corev1.PodSpec{
 					ServiceAccountName: s.Cfg.GrootJobSA,
 					RestartPolicy:      corev1.RestartPolicyNever,
-					Containers:         []corev1.Container{container},
-					Volumes:            volumes,
+					SecurityContext: &corev1.PodSecurityContext{
+						RunAsNonRoot: &ro,
+						RunAsUser:    &nonroot,
+						RunAsGroup:   &nonroot,
+						FSGroup:      &nonroot,
+					},
+					Containers: []corev1.Container{container},
+					Volumes:    volumes,
 				},
 			},
 		},

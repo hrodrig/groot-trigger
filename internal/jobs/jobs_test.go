@@ -160,6 +160,22 @@ func TestCreateWithPVCAndSecret(t *testing.T) {
 	if j.Spec.Template.Spec.Volumes[1].PersistentVolumeClaim == nil {
 		t.Fatal("expected pvc volume")
 	}
+	sc := c.SecurityContext
+	if sc == nil || sc.ReadOnlyRootFilesystem == nil || !*sc.ReadOnlyRootFilesystem {
+		t.Fatal("expected readOnlyRootFilesystem")
+	}
+	if sc.RunAsUser == nil || *sc.RunAsUser != 65532 {
+		t.Fatalf("runAsUser: %+v", sc.RunAsUser)
+	}
+	foundTmp := false
+	for _, m := range c.VolumeMounts {
+		if m.Name == "tmp" && m.MountPath == "/tmp" {
+			foundTmp = true
+		}
+	}
+	if !foundTmp {
+		t.Fatal("expected /tmp emptyDir mount")
+	}
 }
 
 func TestNewInClusterFailsOutside(t *testing.T) {
