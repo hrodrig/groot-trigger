@@ -57,13 +57,17 @@ Behavior contract: **[docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md)**.
 
 ## Deploy on Kubernetes
 
-Primary path: apply the flat manifests (Deployment, Service, RBAC, sample ConfigMap). Create the API-key Secret first — see [deploy/k8s/README.md](deploy/k8s/README.md).
+Primary path: apply the flat manifests. Create the API-key Secret first — see [deploy/k8s/README.md](deploy/k8s/README.md) for **standalone** vs **beside Helm**.
 
 ```bash
 kubectl -n groot create secret generic groot-trigger-api \
   --from-literal=GROOT_TRIGGER_API_KEY='replace-me'
 
-kubectl apply -f deploy/k8s/manifests.yaml
+# Standalone (creates Job SA + collector RBAC):
+kubectl apply -f deploy/k8s/always -f deploy/k8s/job-sa
+
+# Beside groot-selfhosted Helm (reuse Helm Job SA; skip job-sa/):
+# kubectl apply -f deploy/k8s/always
 ```
 
 Image: `ghcr.io/hrodrig/groot-trigger:v0.1.1` (GoReleaser; **`v`-prefixed** tags only).

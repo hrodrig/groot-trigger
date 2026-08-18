@@ -1,0 +1,41 @@
+# Sample groot.yml for on-demand Jobs (GROOT_CONFIGMAP=groot-config).
+# Distinct from groot-selfhosted Helm ConfigMap (fullname, often `groot`).
+# See deploy/k8s/README.md.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: groot-config
+  namespace: groot
+data:
+  groot.yml: |
+    output_dir: /out
+    file_prefix: groot-capture
+    collection:
+      timeout: 20m
+      worker_concurrency: 4
+      namespaces:
+        - kube-system
+        - default
+      include_pod_logs: true
+      include_node_details: true
+      include_node_logs: false
+      include_pod_metrics: true
+    # Optional post-collect upload (groot: s3 / gcs / sftp; HTTP(S)/WebDAV planned upstream).
+    # Enable + set GROOT_ENVFROM_SECRET on the Deployment. Schema: groot SPEC §10.
+    # upload:
+    #   enabled: true
+    #   continue_on_error: true
+    #   timeout: 10m
+    #   s3:
+    #     enabled: true
+    #     bucket: YOUR_BUCKET
+    #     region: YOUR_REGION
+    #     endpoint: https://s3.example.com
+    #     key_prefix: captures/
+    #   sftp:
+    #     enabled: true
+    #     host: sftp.example.com
+    #     user: YOUR_SFTP_USER
+    #     remote_dir: /incoming
+    #     known_hosts_file: /etc/groot/known_hosts

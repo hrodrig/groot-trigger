@@ -1,0 +1,17 @@
+# ClusterIP Service for the trigger API. See deploy/k8s/README.md.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: groot-trigger
+  namespace: groot
+  labels:
+    app.kubernetes.io/name: groot-trigger
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: groot-trigger
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

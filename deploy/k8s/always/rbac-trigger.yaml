@@ -1,0 +1,29 @@
+# Namespace RBAC for the trigger API (create Jobs). Not collector rights.
+# See deploy/k8s/README.md.
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: groot-trigger
+  namespace: groot
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: groot-trigger
+  namespace: groot
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: groot-trigger
+subjects:
+  - kind: ServiceAccount
+    name: groot-trigger
+    namespace: groot
