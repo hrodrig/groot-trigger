@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `deploy/k8s`: split the single `manifests.yaml` into `always/` (trigger) and `job-sa/` (collector SA + ClusterRole). Skip `job-sa/` when groot-selfhosted Helm already owns the Job SA (`GROOT_JOB_SA`) (#12)
+
 ## [0.1.1] — 2026-08-12
 
 ### Changed

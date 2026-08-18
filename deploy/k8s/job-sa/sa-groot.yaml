@@ -1,0 +1,12 @@
+# Collect Job ServiceAccount. Skip this directory when groot-selfhosted Helm
+# already created the Job SA (set GROOT_JOB_SA to that name; default `groot`).
+# See deploy/k8s/README.md.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: groot
+  namespace: groot
+  labels:
+    app.kubernetes.io/name: groot
+    app.kubernetes.io/part-of: groot-trigger

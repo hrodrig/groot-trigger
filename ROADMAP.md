@@ -1,6 +1,6 @@
 # ROADMAP — groot-trigger
 
-**Current focus:** Operator feedback on `deploy/k8s`; Helm (#8) only if needed.
+**Current focus:** Dual-install with groot-selfhosted (`always/` vs `job-sa/`); Helm chart for trigger (#8) only if needed.
 
 | ID | Item | Status |
 |----|------|--------|
@@ -16,5 +16,6 @@
 | #9 | First tagged release (`v0.1.0`) + GHCR | Done (v0.1.0) |
 | #10 | Raise `COVER_MIN` to 80 after tests exist | Done |
 | #11 | Collect Job `readOnlyRootFilesystem` + `/tmp` emptyDir | Done (v0.1.1) |
+| #12 | Split `deploy/k8s` into `always/` + `job-sa/` (Helm coexistence) | Done (unreleased) |
 
 Contract: [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md)

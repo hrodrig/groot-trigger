@@ -1,0 +1,11 @@
+# Trigger API pod ServiceAccount. Apply with deploy/k8s/always/ in every install.
+# See deploy/k8s/README.md.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: groot-trigger
+  namespace: groot
+  labels:
+    app.kubernetes.io/name: groot-trigger
+    app.kubernetes.io/part-of: groot-trigger

@@ -1,0 +1,87 @@
+# groot-trigger Deployment. GROOT_JOB_SA must name an existing Job ServiceAccount
+# (created by deploy/k8s/job-sa/ or by groot-selfhosted Helm).
+# See deploy/k8s/README.md.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: groot-trigger
+  namespace: groot
+  labels:
+    app.kubernetes.io/name: groot-trigger
+    app.kubernetes.io/part-of: groot-trigger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: groot-trigger
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: groot-trigger
+        app.kubernetes.io/part-of: groot-trigger
+    spec:
+      serviceAccountName: groot-trigger
+      # Optional: image pull secret if the trigger/groot images are not public.
+      # imagePullSecrets:
+      #   - name: YOUR_PULL_SECRET
+      containers:
+        - name: trigger
+          # Pin v-prefixed tags (GoReleaser; bare :0.1.0 is not published).
+          image: ghcr.io/hrodrig/groot-trigger:v0.1.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: LISTEN_ADDR
+              value: ":8080"
+            - name: GROOT_IMAGE
+              value: ghcr.io/hrodrig/groot:v1.1.1
+            - name: GROOT_NAMESPACE
+              value: groot
+            - name: GROOT_CONFIGMAP
+              value: groot-config
+            - name: GROOT_JOB_SA
+              value: groot
+            - name: GROOT_TRIGGER_LOG_FORMAT
+              value: json
+            - name: GROOT_TRIGGER_LOG_LEVEL
+              value: info
+            - name: GROOT_TRIGGER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: groot-trigger-api
+                  key: GROOT_TRIGGER_API_KEY
+            # Optional: Job envFrom Secret for collect upload (AWS_* / GCS / GROOT_UPLOAD_SFTP_*).
+            # - name: GROOT_ENVFROM_SECRET
+            #   value: YOUR_UPLOAD_SECRET
+            # Optional: GROOT_TRIGGER_TRUSTED_PROXIES (CIDRs)
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            # Distroless nonroot is a named user in the image; kube needs a numeric UID.
+            runAsUser: 65532
+            runAsGroup: 65532
+            capabilities:
+              drop: ["ALL"]

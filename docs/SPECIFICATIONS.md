@@ -185,7 +185,7 @@ Readiness: `200` if in-cluster config / Job client can be constructed (lightweig
   - `groot-trigger/run_id=<run_id>`
 - **Image:** configurable; default `ghcr.io/hrodrig/groot:v1.1.1` (GHCR publishes **`v`-prefixed** tags only)
 - **Args:** `collect --config /config/groot.yml` (+ optional `--verbose` via values)
-- **ServiceAccount:** dedicated Job SA with **read-only** ClusterRole (same shape as groot-selfhosted collector RBAC)
+- **ServiceAccount:** Job SA with **read-only** collector ClusterRole (same shape as groot-selfhosted). Standalone installs apply `deploy/k8s/job-sa/` (`groot`). When **groot-selfhosted** Helm already created that SA, skip `job-sa/` and set `GROOT_JOB_SA` to the Helm SA name (default `groot` when the release is `groot`)
 - **Volumes:** ConfigMap (groot.yml, read-only), PVC or emptyDir for `/out` (operator choice), emptyDir for `/tmp` (read-only root filesystem)
 - **Security:** Job pod/container `runAsNonRoot` UID/GID `65532` (distroless `nonroot`), `readOnlyRootFilesystem: true`, drop `ALL` capabilities, `fsGroup: 65532` so PVC `/out` is writable
 - **envFrom:** optional Secret for groot upload (`AWS_*` for S3, GCS ADC, `GROOT_UPLOAD_SFTP_*` for SFTP)
@@ -232,6 +232,7 @@ Upload/bucket settings stay in **groot.yml** (ConfigMap), not in trigger code. C
 **Job SA** (collect pod):
 
 - Same read-only collector ClusterRole as **groot-selfhosted** (pods/logs, events, nodes, workloads, metrics, …)
+- Created by `deploy/k8s/job-sa/` **or** reused from a groot-selfhosted Helm release in the same namespace (do not apply `job-sa/` on top of Helm)
 
 ## 8. Error handling & observability
 
@@ -287,7 +288,8 @@ groot-trigger/
   docs/superpowers/specs/…        # design history
   cmd/groot-trigger/
   internal/
-  deploy/k8s/                     # Flat manifests (Deployment + Service + RBAC); Helm only if demand
+  deploy/k8s/always/              # Trigger SA, Role, ConfigMap, Deployment, Service
+  deploy/k8s/job-sa/              # Job SA + collector ClusterRole; skip if Helm owns the Job SA
   Dockerfile / Dockerfile.release
   .goreleaser.yaml / Makefile
 ```
