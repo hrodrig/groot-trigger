@@ -33,6 +33,7 @@ type Server struct {
 	Limit   *ratelimit.Limiter
 	Trusted *proxy.TrustedProxies
 	Ready   func() bool
+	Version string
 }
 
 // Handler returns the root mux with middleware.
@@ -61,7 +62,18 @@ func (s *Server) handleReadyz(w http.ResponseWriter, _ *http.Request) {
 
 func (s *Server) handleCollectGET(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_ = formTmpl.Execute(w, nil)
+	_ = formTmpl.Execute(w, map[string]any{"Version": s.versionLabel()})
+}
+
+func (s *Server) versionLabel() string {
+	v := strings.TrimSpace(s.Version)
+	if v == "" {
+		return "dev"
+	}
+	if v != "dev" && !strings.HasPrefix(v, "v") {
+		return "v" + v
+	}
+	return v
 }
 
 func (s *Server) handleCollectPOST(w http.ResponseWriter, r *http.Request) {
@@ -227,7 +239,7 @@ button:hover { filter: brightness(1.05); }
     <input id="message" name="message" type="text" maxlength="128">
     <button type="submit">Generate GROOT files</button>
   </form>
-  <p class="foot">POST /v1/collect · fire-and-forget</p>
+  <p class="foot">POST /v1/collect · fire-and-forget · {{.Version}}</p>
 </main>
 </body>
 </html>`))

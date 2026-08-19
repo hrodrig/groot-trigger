@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Optional POST `message` (max 128 characters) is passed to the collect Job as groot `--message`, so the sanitized slug appears in the archive basename. Empty omits the flag. HTML `maxlength=128`; over-length → `400` `message_too_long` (#13)
+- Collect UI footer shows the binary version (`POST /v1/collect · fire-and-forget · v0.1.2`)
 
 ### Changed
 

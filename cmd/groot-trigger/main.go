@@ -85,6 +85,7 @@ func newHTTPServer(cfg config.Config, newKS newInClusterFn) (*http.Server, error
 		Limit:   ratelimit.New(cfg.RateLimitPost, cfg.RateLimitGlobal, trusted),
 		Trusted: trusted,
 		Ready:   func() bool { return readyOK },
+		Version: version,
 	}
 
 	slog.Info("starting",

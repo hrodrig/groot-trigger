@@ -47,6 +47,7 @@ func testServer(fj jobs.Starter, postLimit config.LimitSpec) *Server {
 		Limit:   ratelimit.New(postLimit, config.LimitSpec{}, tp),
 		Trusted: tp,
 		Ready:   func() bool { return true },
+		Version: "0.1.2",
 	}
 }
 
@@ -69,6 +70,9 @@ func TestCollectGETHasButton(t *testing.T) {
 	}
 	if !strings.Contains(body, `maxlength="128"`) {
 		t.Fatal("expected message maxlength 128")
+	}
+	if !strings.Contains(body, "fire-and-forget · v0.1.2") {
+		t.Fatal("expected version in footer")
 	}
 }
 
@@ -261,5 +265,20 @@ func TestWantsJSON(t *testing.T) {
 	r.Header.Set("Authorization", "Bearer x")
 	if !wantsJSON(r) {
 		t.Fatal("bearer")
+	}
+}
+
+func TestVersionLabel(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{"", "dev"},
+		{"dev", "dev"},
+		{"0.1.2", "v0.1.2"},
+		{"v0.1.2", "v0.1.2"},
+	}
+	for _, tc := range cases {
+		s := &Server{Version: tc.in}
+		if got := s.versionLabel(); got != tc.want {
+			t.Fatalf("in=%q got=%q want=%q", tc.in, got, tc.want)
+		}
 	}
 }

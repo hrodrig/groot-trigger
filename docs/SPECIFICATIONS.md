@@ -131,6 +131,7 @@ Serves a **minimal HTML** page (English UI strings):
 - Password field: **API key**
 - One primary control: button label **“Generate GROOT files”**
 - Form: `method=POST`, `action=/v1/collect`, fields `api_key` (+ optional `message`, max **128** Unicode characters)
+- Footer (monospace): `POST /v1/collect · fire-and-forget · v<version>` — version from build ldflags (`dev` when unset)
 - Visual: operator utility (CSS custom properties, sober palette, monospace for `run_id` / status). No marketing hero, cards, or stat strips
 - No status poll, no download list
 
