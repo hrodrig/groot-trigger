@@ -16,6 +16,7 @@
 | #9 | First tagged release (`v0.1.0`) + GHCR | Done (v0.1.0) |
 | #10 | Raise `COVER_MIN` to 80 after tests exist | Done |
 | #11 | Collect Job `readOnlyRootFilesystem` + `/tmp` emptyDir | Done (v0.1.1) |
-| #12 | Split `deploy/k8s` into `always/` + `job-sa/` (Helm coexistence) | Done (unreleased) |
+| #12 | Split `deploy/k8s` into `always/` + `job-sa/` (Helm coexistence) | Done (v0.1.2) |
+| #13 | Pass form/JSON `message` to Job as groot `--message` (max 128); no groot SPEC change | Done (v0.1.2) |
 
 Contract: [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md)

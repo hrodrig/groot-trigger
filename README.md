@@ -4,7 +4,7 @@
 
 **⚡** _In-cluster HTTP API that creates a Kubernetes Job running [`groot`](https://github.com/hrodrig/groot) collect_
 
-[![Version](https://img.shields.io/badge/version-0.1.1-blue)](https://github.com/hrodrig/groot-trigger/releases)
+[![Version](https://img.shields.io/badge/version-0.1.2-blue)](https://github.com/hrodrig/groot-trigger/releases)
 [![Release](https://img.shields.io/github/v/release/hrodrig/groot-trigger?display_name=tag&label=release&logo=github)](https://github.com/hrodrig/groot-trigger/releases)
 [![Go](https://img.shields.io/badge/Go-1.26.5-00ADD8?logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
@@ -47,7 +47,7 @@
 | `GET /healthz` | Liveness |
 | `GET /readyz` | Readiness (in-cluster Kubernetes client available) |
 | `GET /v1/collect` | Vanilla HTML: API key + **Generate GROOT files** |
-| `POST /v1/collect` | Start Job → `202` + `run_id` (JSON or HTML); `401` / `409` / `429` |
+| `POST /v1/collect` | Start Job → `202` + `run_id` (JSON or HTML); `401` / `409` / `429` / `400` (`message_too_long`) |
 
 Auth (POST / form): `X-API-Key`, `Authorization: Bearer …`, or form field `api_key`. Fail closed if `GROOT_TRIGGER_API_KEY` is unset.
 
@@ -70,7 +70,7 @@ kubectl apply -f deploy/k8s/always -f deploy/k8s/job-sa
 # kubectl apply -f deploy/k8s/always
 ```
 
-Image: `ghcr.io/hrodrig/groot-trigger:v0.1.1` (GoReleaser; **`v`-prefixed** tags only).
+Image: `ghcr.io/hrodrig/groot-trigger:v0.1.2` (GoReleaser; **`v`-prefixed** tags only).
 
 Reach the UI/API via ClusterIP Service, Ingress, or a temporary port-forward from a machine that can reach the cluster API/network:
 
@@ -88,14 +88,18 @@ Optional post-collect upload for the Job: enable `upload` in the ConfigMap (`s3`
 After the Service is reachable (Ingress, or temporary `kubectl port-forward` as above):
 
 ```bash
-# HTML form (browser): GET /v1/collect
+# HTML form (browser): GET /v1/collect — optional Message field (max 128 chars)
 
 # JSON start (replace host with your Ingress / port-forward URL)
 curl -sS -X POST \
   -H "X-API-Key: $GROOT_TRIGGER_API_KEY" \
   -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"oom tempo kill"}' \
   http://127.0.0.1:8080/v1/collect
 # → 202 {"run_id":"…","job":"groot-collect-…"}
+# Job runs: groot collect --config … --message "oom tempo kill"
+# Archive suffix uses groot --message (unchanged groot naming).
 ```
 
 Single-flight: a second POST while a collect Job is Pending/Running returns **`409`**. Rate limits return **`429`**.
