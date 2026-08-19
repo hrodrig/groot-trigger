@@ -24,7 +24,7 @@ import (
 
 // maxMessageRunes is the POST `message` cap (HTML maxlength + API). Groot
 // `--message` still sanitizes the value into the archive basename suffix.
-const maxMessageRunes = 128
+const maxMessageRunes = 48
 
 // Server is the HTTP front-end.
 type Server struct {
@@ -62,7 +62,10 @@ func (s *Server) handleReadyz(w http.ResponseWriter, _ *http.Request) {
 
 func (s *Server) handleCollectGET(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_ = formTmpl.Execute(w, map[string]any{"Version": s.versionLabel()})
+	_ = formTmpl.Execute(w, map[string]any{
+		"Version":    s.versionLabel(),
+		"MaxMessage": maxMessageRunes,
+	})
 }
 
 func (s *Server) versionLabel() string {
@@ -235,8 +238,8 @@ button:hover { filter: brightness(1.05); }
   <form method="POST" action="/v1/collect">
     <label for="api_key">API key</label>
     <input id="api_key" name="api_key" type="password" autocomplete="current-password" required>
-    <label for="message">Message (optional)</label>
-    <input id="message" name="message" type="text" maxlength="128">
+    <label for="message">Message (optional, max {{.MaxMessage}} characters)</label>
+    <input id="message" name="message" type="text" maxlength="{{.MaxMessage}}" placeholder="Short label for archive filename">
     <button type="submit">Generate GROOT files</button>
   </form>
   <p class="foot">POST /v1/collect · fire-and-forget · {{.Version}}</p>

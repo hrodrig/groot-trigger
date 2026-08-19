@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-08-19
+
+### Changed
+
+- Optional POST `message` cap reduced from 128 to **48** Unicode characters (HTML `maxlength`, API validation, archive basename slug). Collect UI label states the limit; placeholder hints filename use.
+
 ## [0.1.2] — 2026-08-19
 
 ### Added

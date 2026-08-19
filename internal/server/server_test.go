@@ -68,8 +68,11 @@ func TestCollectGETHasButton(t *testing.T) {
 	if !strings.Contains(body, "Generate GROOT files") || !strings.Contains(body, `name="api_key"`) {
 		t.Fatal(body)
 	}
-	if !strings.Contains(body, `maxlength="128"`) {
-		t.Fatal("expected message maxlength 128")
+	if !strings.Contains(body, `maxlength="48"`) {
+		t.Fatal("expected message maxlength 48")
+	}
+	if !strings.Contains(body, "max 48 characters") {
+		t.Fatal("expected message limit in label")
 	}
 	if !strings.Contains(body, "fire-and-forget · v0.1.2") {
 		t.Fatal("expected version in footer")

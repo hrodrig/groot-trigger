@@ -130,7 +130,7 @@ Serves a **minimal HTML** page (English UI strings):
 - Title / brand: GROOT trigger
 - Password field: **API key**
 - One primary control: button label **“Generate GROOT files”**
-- Form: `method=POST`, `action=/v1/collect`, fields `api_key` (+ optional `message`, max **128** Unicode characters)
+- Form: `method=POST`, `action=/v1/collect`, fields `api_key` (+ optional `message`, max **48** Unicode characters)
 - Footer (monospace): `POST /v1/collect · fire-and-forget · v<version>` — version from build ldflags (`dev` when unset)
 - Visual: operator utility (CSS custom properties, sober palette, monospace for `run_id` / status). No marketing hero, cards, or stat strips
 - No status poll, no download list
@@ -143,7 +143,7 @@ Starts a collect Job **after** successful API key check. Clients: browser form, 
 
 **Request body:**
 
-- Form: `api_key` (required for browser), optional `message` (max **128** Unicode characters after trim; empty = omit)
+- Form: `api_key` (required for browser), optional `message` (max **48** Unicode characters after trim; empty = omit)
 - Optional JSON (`Content-Type: application/json`) when using headers for auth:
 
 ```json
@@ -166,7 +166,7 @@ Prefer JSON when `Accept` includes `application/json` or request used JSON / `X-
 | `401` | Missing / invalid API key | `{"error":"unauthorized"}` | “Unauthorized” + link back |
 | `409` | Collect Job with label `app.kubernetes.io/name=groot-trigger-collect` is Pending or Running | `{"error":"collect_in_progress","job":"<existing>"}` | “Collect already in progress” + link back |
 | `429` | Rate limit exceeded | `{"error":"rate_limited"}` | “Too many requests” + link back |
-| `400` | Malformed JSON or `message` longer than 128 characters | `{"error":"bad_request"}` or `{"error":"message_too_long"}` | Short error + link back |
+| `400` | Malformed JSON or `message` longer than 48 characters | `{"error":"bad_request"}` or `{"error":"message_too_long"}` | Short error + link back |
 | `500` | API / RBAC / apiserver failure | `{"error":"internal","detail":"..."}` (no secrets) | Short error + link back |
 
 **No** `GET /v1/collect/{id}` in v0.1.x. Completion signal = notify channels and/or object appearing in the bucket.

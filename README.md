@@ -88,7 +88,7 @@ Optional post-collect upload for the Job: enable `upload` in the ConfigMap (`s3`
 After the Service is reachable (Ingress, or temporary `kubectl port-forward` as above):
 
 ```bash
-# HTML form (browser): GET /v1/collect — optional Message field (max 128 chars)
+# HTML form (browser): GET /v1/collect — optional Message field (max 48 chars)
 
 # JSON start (replace host with your Ingress / port-forward URL)
 curl -sS -X POST \
