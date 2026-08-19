@@ -1,5 +1,5 @@
 PORTNAME=	groot-trigger
-PORTVERSION=	0.1.1
+PORTVERSION=	0.1.2
 DISTVERSIONPREFIX=	v
 CATEGORIES=	sysutils
 # Local test before release: copy the tarball into DISTDIR, or run e.g.

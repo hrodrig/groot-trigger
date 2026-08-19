@@ -28,7 +28,7 @@ spec:
       containers:
         - name: trigger
           # Pin v-prefixed tags (GoReleaser; bare :0.1.0 is not published).
-          image: ghcr.io/hrodrig/groot-trigger:v0.1.1
+          image: ghcr.io/hrodrig/groot-trigger:v0.1.2
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

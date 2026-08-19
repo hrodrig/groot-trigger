@@ -153,6 +153,9 @@ func (s *K8sStarter) Create(ctx context.Context, runID, message string) (Result,
 	backoff := int32(0)
 	args := []string{"collect", "--config", "/config/" + s.Cfg.GrootConfigKey}
 	args = append(args, s.Cfg.GrootExtraArgs...)
+	if message != "" {
+		args = append(args, "--message", message)
+	}
 
 	nonroot := int64(65532)
 	ro := true
@@ -175,9 +178,6 @@ func (s *K8sStarter) Create(ctx context.Context, runID, message string) (Result,
 			RunAsGroup:               &nonroot,
 			Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
 		},
-	}
-	if message != "" {
-		container.Env = append(container.Env, corev1.EnvVar{Name: "GROOT_TRIGGER_MESSAGE", Value: message})
 	}
 	if s.Cfg.GrootEnvFromSecret != "" {
 		container.EnvFrom = []corev1.EnvFromSource{{

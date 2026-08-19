@@ -35,6 +35,19 @@ func TestCreateAndBusy(t *testing.T) {
 	if res.JobName == "" || res.RunID == "" {
 		t.Fatalf("result: %+v", res)
 	}
+	j, err := cs.BatchV1().Jobs("groot").Get(ctx, res.JobName, metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	args := j.Spec.Template.Spec.Containers[0].Args
+	if !containsPair(args, "--message", "note") {
+		t.Fatalf("args missing --message note: %v", args)
+	}
+	for _, e := range j.Spec.Template.Spec.Containers[0].Env {
+		if e.Name == "GROOT_TRIGGER_MESSAGE" {
+			t.Fatal("must not set unused GROOT_TRIGGER_MESSAGE")
+		}
+	}
 	_, err = s.Create(ctx, "zzzzzzzz-9999", "")
 	if err == nil {
 		t.Fatal("expected busy")
@@ -157,6 +170,18 @@ func TestCreateWithPVCAndSecret(t *testing.T) {
 	if len(c.EnvFrom) != 1 || c.EnvFrom[0].SecretRef.Name != "groot-s3" {
 		t.Fatalf("envFrom: %+v", c.EnvFrom)
 	}
+	if !containsPair(c.Args, "--message", "m") {
+		t.Fatalf("args: %v", c.Args)
+	}
+	foundVerbose := false
+	for _, a := range c.Args {
+		if a == "--verbose" {
+			foundVerbose = true
+		}
+	}
+	if !foundVerbose {
+		t.Fatalf("missing --verbose in %v", c.Args)
+	}
 	if j.Spec.Template.Spec.Volumes[1].PersistentVolumeClaim == nil {
 		t.Fatal("expected pvc volume")
 	}
@@ -207,4 +232,41 @@ func TestNewInClusterFailsOutside(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected in-cluster config error outside cluster")
 	}
+}
+
+func TestCreateOmitsEmptyMessage(t *testing.T) {
+	cs := fake.NewSimpleClientset()
+	s := &K8sStarter{
+		Client: cs,
+		Cfg: config.Config{
+			GrootImage:     "ghcr.io/hrodrig/groot:v1.1.1",
+			GrootConfigMap: "groot-config",
+			GrootConfigKey: "groot.yml",
+			GrootJobSA:     "groot",
+			JobTTLSeconds:  60,
+		},
+		NS: "groot",
+	}
+	res, err := s.Create(context.Background(), "aabbccdd", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	j, err := cs.BatchV1().Jobs("groot").Get(context.Background(), res.JobName, metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, a := range j.Spec.Template.Spec.Containers[0].Args {
+		if a == "--message" {
+			t.Fatal("empty message must not add --message")
+		}
+	}
+}
+
+func containsPair(args []string, flag, value string) bool {
+	for i := 0; i+1 < len(args); i++ {
+		if args[i] == flag && args[i+1] == value {
+			return true
+		}
+	}
+	return false
 }

@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/hrodrig/groot-trigger/internal/auth"
 	"github.com/hrodrig/groot-trigger/internal/config"
@@ -20,6 +21,10 @@ import (
 	"github.com/hrodrig/groot-trigger/internal/proxy"
 	"github.com/hrodrig/groot-trigger/internal/ratelimit"
 )
+
+// maxMessageRunes is the POST `message` cap (HTML maxlength + API). Groot
+// `--message` still sanitizes the value into the archive basename suffix.
+const maxMessageRunes = 128
 
 // Server is the HTTP front-end.
 type Server struct {
@@ -87,6 +92,11 @@ func (s *Server) handleCollectPOST(w http.ResponseWriter, r *http.Request) {
 	} else {
 		_ = r.ParseForm()
 		message = r.Form.Get("message")
+	}
+	message = strings.TrimSpace(message)
+	if utf8.RuneCountInString(message) > maxMessageRunes {
+		s.respond(w, r, wantJSON, http.StatusBadRequest, map[string]any{"error": "message_too_long"}, "Message too long")
+		return
 	}
 
 	runID, err := newRunID()
@@ -214,7 +224,7 @@ button:hover { filter: brightness(1.05); }
     <label for="api_key">API key</label>
     <input id="api_key" name="api_key" type="password" autocomplete="current-password" required>
     <label for="message">Message (optional)</label>
-    <input id="message" name="message" type="text" maxlength="200">
+    <input id="message" name="message" type="text" maxlength="128">
     <button type="submit">Generate GROOT files</button>
   </form>
   <p class="foot">POST /v1/collect · fire-and-forget</p>

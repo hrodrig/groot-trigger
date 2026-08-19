@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-08-19
+
+### Added
+
+- Optional POST `message` (max 128 characters) is passed to the collect Job as groot `--message`, so the sanitized slug appears in the archive basename. Empty omits the flag. HTML `maxlength=128`; over-length → `400` `message_too_long` (#13)
+
 ### Changed
 
 - `deploy/k8s`: split the single `manifests.yaml` into `always/` (trigger) and `job-sa/` (collector SA + ClusterRole). Skip `job-sa/` when groot-selfhosted Helm already owns the Job SA (`GROOT_JOB_SA`) (#12)

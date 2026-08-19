@@ -16,8 +16,9 @@ import (
 )
 
 type fakeJobs struct {
-	busyName string
-	created  int
+	busyName    string
+	created     int
+	lastMessage string
 }
 
 func (f *fakeJobs) ActiveJob(context.Context) (string, bool, error) {
@@ -27,11 +28,12 @@ func (f *fakeJobs) ActiveJob(context.Context) (string, bool, error) {
 	return "", false, nil
 }
 
-func (f *fakeJobs) Create(_ context.Context, runID, _ string) (jobs.Result, error) {
+func (f *fakeJobs) Create(_ context.Context, runID, message string) (jobs.Result, error) {
 	if f.busyName != "" {
 		return jobs.Result{}, &jobs.ErrBusy{JobName: f.busyName}
 	}
 	f.created++
+	f.lastMessage = message
 	f.busyName = "groot-collect-" + runID[:8]
 	return jobs.Result{RunID: runID, JobName: f.busyName}, nil
 }
@@ -64,6 +66,9 @@ func TestCollectGETHasButton(t *testing.T) {
 	body := rr.Body.String()
 	if !strings.Contains(body, "Generate GROOT files") || !strings.Contains(body, `name="api_key"`) {
 		t.Fatal(body)
+	}
+	if !strings.Contains(body, `maxlength="128"`) {
+		t.Fatal("expected message maxlength 128")
 	}
 }
 
@@ -158,10 +163,14 @@ func TestCollectHTMLFormAndResult(t *testing.T) {
 	if !strings.Contains(rr.Body.String(), "Collect started") {
 		t.Fatal(rr.Body.String())
 	}
+	if fj.lastMessage != "hi" {
+		t.Fatalf("message=%q", fj.lastMessage)
+	}
 }
 
 func TestCollectJSONBody(t *testing.T) {
-	s := testServer(&fakeJobs{}, config.LimitSpec{})
+	fj := &fakeJobs{}
+	s := testServer(fj, config.LimitSpec{})
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/v1/collect", strings.NewReader(`{"message":"x"}`))
 	req.Header.Set("Content-Type", "application/json")
@@ -169,6 +178,42 @@ func TestCollectJSONBody(t *testing.T) {
 	s.Handler().ServeHTTP(rr, req)
 	if rr.Code != http.StatusAccepted {
 		t.Fatalf("code %d %s", rr.Code, rr.Body.String())
+	}
+	if fj.lastMessage != "x" {
+		t.Fatalf("message=%q", fj.lastMessage)
+	}
+}
+
+func TestCollectMessageTooLong(t *testing.T) {
+	s := testServer(&fakeJobs{}, config.LimitSpec{})
+	long := strings.Repeat("a", maxMessageRunes+1)
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/v1/collect", strings.NewReader(`{"message":"`+long+`"}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-API-Key", "secret")
+	s.Handler().ServeHTTP(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("code %d %s", rr.Code, rr.Body.String())
+	}
+	if !strings.Contains(rr.Body.String(), "message_too_long") {
+		t.Fatal(rr.Body.String())
+	}
+}
+
+func TestCollectMessageMaxOK(t *testing.T) {
+	fj := &fakeJobs{}
+	s := testServer(fj, config.LimitSpec{})
+	ok := strings.Repeat("b", maxMessageRunes)
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/v1/collect", strings.NewReader(`{"message":"`+ok+`"}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-API-Key", "secret")
+	s.Handler().ServeHTTP(rr, req)
+	if rr.Code != http.StatusAccepted {
+		t.Fatalf("code %d %s", rr.Code, rr.Body.String())
+	}
+	if fj.lastMessage != ok {
+		t.Fatalf("len=%d", len(fj.lastMessage))
 	}
 }
 

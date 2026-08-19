@@ -1,6 +1,6 @@
 # groot-trigger — specifications
 
-**Status:** Approved (2026-08-12). Behavior contract for **v0.1.1**.  
+**Status:** Approved (2026-08-12). Behavior contract for **v0.1.2**.  
 **Repo:** [github.com/hrodrig/groot-trigger](https://github.com/hrodrig/groot-trigger)  
 **Design history:** [docs/superpowers/specs/2026-08-12-groot-trigger-design.md](superpowers/specs/2026-08-12-groot-trigger-design.md)  
 **Not in scope:** GROOT CLI behavior; Helm CronJob packaging (**groot** / **groot-selfhosted**).
@@ -130,7 +130,7 @@ Serves a **minimal HTML** page (English UI strings):
 - Title / brand: GROOT trigger
 - Password field: **API key**
 - One primary control: button label **“Generate GROOT files”**
-- Form: `method=POST`, `action=/v1/collect`, fields `api_key` (+ optional `message`)
+- Form: `method=POST`, `action=/v1/collect`, fields `api_key` (+ optional `message`, max **128** Unicode characters)
 - Visual: operator utility (CSS custom properties, sober palette, monospace for `run_id` / status). No marketing hero, cards, or stat strips
 - No status poll, no download list
 
@@ -142,14 +142,16 @@ Starts a collect Job **after** successful API key check. Clients: browser form, 
 
 **Request body:**
 
-- Form: `api_key` (required for browser), optional `message`
+- Form: `api_key` (required for browser), optional `message` (max **128** Unicode characters after trim; empty = omit)
 - Optional JSON (`Content-Type: application/json`) when using headers for auth:
 
 ```json
 {
-  "message": "optional operator note for archive / notify"
+  "message": "optional operator note; groot --message archive suffix"
 }
 ```
+
+Longer `message` → **`400`** `{"error":"message_too_long"}`. Groot sanitizes the value (lowercase, filesystem-safe) and appends it as the archive basename suffix (`<sessionBase>-<cluster>[-<message-suffix>].tar.gz`). This service does **not** change groot naming.
 
 (Do not put the API key in JSON if a header is used; form field `api_key` or header still required.)
 
@@ -163,7 +165,7 @@ Prefer JSON when `Accept` includes `application/json` or request used JSON / `X-
 | `401` | Missing / invalid API key | `{"error":"unauthorized"}` | “Unauthorized” + link back |
 | `409` | Collect Job with label `app.kubernetes.io/name=groot-trigger-collect` is Pending or Running | `{"error":"collect_in_progress","job":"<existing>"}` | “Collect already in progress” + link back |
 | `429` | Rate limit exceeded | `{"error":"rate_limited"}` | “Too many requests” + link back |
-| `400` | Malformed JSON | `{"error":"bad_request"}` | Short error + link back |
+| `400` | Malformed JSON or `message` longer than 128 characters | `{"error":"bad_request"}` or `{"error":"message_too_long"}` | Short error + link back |
 | `500` | API / RBAC / apiserver failure | `{"error":"internal","detail":"..."}` (no secrets) | Short error + link back |
 
 **No** `GET /v1/collect/{id}` in v0.1.x. Completion signal = notify channels and/or object appearing in the bucket.
@@ -184,7 +186,7 @@ Readiness: `200` if in-cluster config / Job client can be constructed (lightweig
   - `app.kubernetes.io/part-of=groot-trigger`
   - `groot-trigger/run_id=<run_id>`
 - **Image:** configurable; default `ghcr.io/hrodrig/groot:v1.1.1` (GHCR publishes **`v`-prefixed** tags only)
-- **Args:** `collect --config /config/groot.yml` (+ optional `--verbose` via values)
+- **Args:** `collect --config /config/groot.yml` (+ optional `--verbose` via `GROOT_EXTRA_ARGS`) (+ optional `--message <text>` when POST `message` is non-empty)
 - **ServiceAccount:** Job SA with **read-only** collector ClusterRole (same shape as groot-selfhosted). Standalone installs apply `deploy/k8s/job-sa/` (`groot`). When **groot-selfhosted** Helm already created that SA, skip `job-sa/` and set `GROOT_JOB_SA` to the Helm SA name (default `groot` when the release is `groot`)
 - **Volumes:** ConfigMap (groot.yml, read-only), PVC or emptyDir for `/out` (operator choice), emptyDir for `/tmp` (read-only root filesystem)
 - **Security:** Job pod/container `runAsNonRoot` UID/GID `65532` (distroless `nonroot`), `readOnlyRootFilesystem: true`, drop `ALL` capabilities, `fsGroup: 65532` so PVC `/out` is writable
