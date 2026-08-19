@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `deploy/k8s`: split the single `manifests.yaml` into `always/` (trigger) and `job-sa/` (collector SA + ClusterRole). Skip `job-sa/` when groot-selfhosted Helm already owns the Job SA (`GROOT_JOB_SA`) (#12)
 
+### Fixed
+
+- Release job no longer runs `apt-get update` to install `bc` (that step hung ~1h on ubuntu-latest). `make cover` uses `awk` when `bc` is absent. Release job `timeout-minutes: 30`.
+- CI skips same-repo pull_request duplicates; fork PRs still run. Push to `develop` / `main` remains the CI signal.
+
 ## [0.1.1] — 2026-08-12
 
 ### Changed
