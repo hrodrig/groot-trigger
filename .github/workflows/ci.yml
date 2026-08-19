@@ -16,6 +16,8 @@ on:
 jobs:
   lint:
     name: gofmt + golangci-lint + gocyclo
+    # Same-repo PRs already ran on the branch push; skip the duplicate. Fork PRs still run.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,6 +40,7 @@ jobs:
         run: make gocyclo
 
   test:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

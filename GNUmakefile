@@ -118,8 +118,12 @@ cover:
 	@P=$$(go tool cover -func=coverage.out | tail -1 | sed 's/^.*[[:space:]]\([0-9.]*\)%.*/\1/'); \
 		echo "total (merged) statement coverage: $$P% (minimum $(COVER_MIN)%)"; \
 		if [ "$(COVER_MIN)" -gt 0 ]; then \
-			command -v bc >/dev/null 2>&1 || { echo "COVER_MIN>0 requires bc"; exit 1; }; \
-			if [ "$$(echo "$$P < $(COVER_MIN)" | bc)" -eq 1 ]; then \
+			if command -v bc >/dev/null 2>&1; then \
+				below=$$(echo "$$P < $(COVER_MIN)" | bc); \
+			else \
+				below=$$(awk -v p="$$P" -v m="$(COVER_MIN)" 'BEGIN { print (p+0 < m+0) }'); \
+			fi; \
+			if [ "$$below" -eq 1 ]; then \
 				echo "coverage below $(COVER_MIN)%"; exit 1; \
 			fi; \
 		fi
