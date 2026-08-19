@@ -6,7 +6,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.1.2-blue)](https://github.com/hrodrig/groot-trigger/releases)
 [![Release](https://img.shields.io/github/v/release/hrodrig/groot-trigger?display_name=tag&label=release&logo=github)](https://github.com/hrodrig/groot-trigger/releases)
-[![Go](https://img.shields.io/badge/Go-1.26.5-00ADD8?logo=go)](https://go.dev/)
+[![Go](https://img.shields.io/badge/Go-1.26.6-00ADD8?logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![CI](https://github.com/hrodrig/groot-trigger/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hrodrig/groot-trigger/actions/workflows/ci.yml)
 [![gghstats clones](https://gghstats.hermesrodriguez.com/api/v1/badge/hrodrig/groot-trigger?metric=clones)](https://gghstats.hermesrodriguez.com/hrodrig/groot-trigger)

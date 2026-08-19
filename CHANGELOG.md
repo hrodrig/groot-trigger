@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Release job no longer runs `apt-get update` to install `bc` (that step hung ~1h on ubuntu-latest). `make cover` uses `awk` when `bc` is absent. Release job `timeout-minutes: 30`.
 - CI skips same-repo pull_request duplicates; fork PRs still run. Push to `develop` / `main` remains the CI signal.
+- Bump Go to **1.26.6** so `govulncheck` is clean (stdlib GO-2026-6218 / 6091 / 6090 / 6089 / 5972 / 5026 on 1.26.5). CI now runs `govulncheck` on push so this fails **before** a release tag.
 
 ## [0.1.1] — 2026-08-12
 

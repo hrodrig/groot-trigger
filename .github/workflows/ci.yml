@@ -52,3 +52,18 @@ jobs:
 
       - name: Test
         run: make test
+
+  govulncheck:
+    name: govulncheck
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run govulncheck
+        run: make govulncheck
