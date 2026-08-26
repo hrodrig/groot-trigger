@@ -1,5 +1,5 @@
 ---
-description: Git flow — feature branch → PR to develop; main is production via PR; never push to develop or main.
+description: Git flow — feature branch → PR to develop; main is production via PR; sync main back into develop after release merges.
 alwaysApply: true
 ---
 
@@ -19,10 +19,24 @@ GitHub rulesets **`protect-develop`** and **`protect-main`** block direct pushes
 
 1. Integration is already on `develop`. All tests pass (`make test` / `make release-check` before tag).
 2. Open a PR **`develop` → `main`**. Do not push `main`.
-3. After merge, on `main`: annotated tag `vX.Y.Z` and `git push origin vX.Y.Z` (GoReleaser).
+3. After merge, on `main`: annotated tag `vX.Y.Z` and `git push origin vX.Y.Z` (GoReleaser) when releasing.
+4. **Sync `main` back into `develop`** (see below). Do this even for docs-only `develop` → `main` merges.
+
+## After `develop` → `main` (required sync)
+
+Merge commits on `main` are **not** on `develop`. GitHub then shows **"This branch is out-of-date with the base branch"** on the next `develop` → `main` PR (strict status checks / outdated branch).
+
+**Fix — always after merging into `main`:**
+
+1. Branch from `develop`: `git fetch origin && git switch develop && git pull && git switch -c chore/sync-main-into-develop`
+2. `git merge origin/main` (or open PR **`main` → `develop`**)
+3. Push and open a PR **into `develop`**. Merge when CI is green.
+
+Do **not** force-push `develop` or `main`. Do **not** push either protected branch directly.
 
 ## Never
 
 - Direct push to `develop` or `main`
 - Feature commits on `main`
+- Leaving `develop` behind `main` after a release (or docs) merge
 - Invent a remote or `git push` unless the operator asked
