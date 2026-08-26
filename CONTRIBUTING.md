@@ -38,6 +38,18 @@ Maintainers before tag: `make release-check` (includes `make cover` with **`COVE
 1. Merge feature PRs into **`develop`**.
 2. Open PR **`develop` → `main`** (`gh pr create --base main --head develop`). Merge on GitHub.
 3. Annotated tag `vX.Y.Z` on **`main`** → `git push origin vX.Y.Z` → `.github/workflows/release.yml` runs GoReleaser (binaries + `ghcr.io/hrodrig/groot-trigger:vX.Y.Z`).
+4. **Sync `main` into `develop`** (merge commit on `main` is not on `develop`). Without this, the next `develop` → `main` PR shows **"This branch is out-of-date with the base branch"**.
+
+```bash
+git fetch origin
+git switch develop && git pull
+git switch -c chore/sync-main-into-develop
+git merge origin/main
+git push -u origin HEAD
+gh pr create --base develop --head chore/sync-main-into-develop
+```
+
+Alternatively: `gh pr create --base develop --head main` when that tip is only the release merge.
 
 ## Scope
 
