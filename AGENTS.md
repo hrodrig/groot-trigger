@@ -17,4 +17,4 @@ Companion HTTP service: create in-cluster **Jobs** running **groot** collect.
 
 **Remote:** [github.com/hrodrig/groot-trigger](https://github.com/hrodrig/groot-trigger).
 
-Work on a **local branch**, then PR into **`develop`**. Never push to `develop` or `main`. Release: PR `develop` → `main`, then annotated tag on `main`.
+Work on a **local branch**, then PR into **`develop`**. Never push to `develop` or `main`. Release: PR `develop` → `main`, then annotated tag on `main`. After every merge into `main`, sync **`main` → `develop`** (merge commit) so the next release PR is not **"out-of-date with the base branch"** — see `.cursor/rules/git-flow.mdc`.
