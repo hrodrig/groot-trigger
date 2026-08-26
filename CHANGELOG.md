@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Branch policy matches gghstats: feature/fix work on a local branch; PR into `develop`. No direct push to `develop` or `main`. Release remains PR `develop` → `main` then tag.
+- CI runs on pull requests to `develop` / `main` (same-repo and forks). Required so GitHub rulesets can demand checks on PRs.
+- README: full groot family (`groot-share` / `groot-share-selfhosted`); version badge and image pin `v0.1.3`.
+
 ## [0.1.3] — 2026-08-19
 
 ### Changed

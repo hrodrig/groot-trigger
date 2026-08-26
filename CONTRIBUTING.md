@@ -4,7 +4,15 @@
 
 - English only for all project artifacts.
 - Security issues: [SECURITY.md](SECURITY.md) — no public issues for undisclosed vulns.
-- Day-to-day work on **`develop`**. `main` is release-only (git flow).
+- **Branch policy:** `develop` is the integration branch; `main` is stable releases.
+- **PR base:** open normal feature/fix PRs against **`develop`**.
+- **No direct push** to `develop` or `main` (GitHub rulesets `protect-develop` / `protect-main`).
+
+## How to contribute
+
+- **Bug reports and feature requests:** Open an [issue](https://github.com/hrodrig/groot-trigger/issues).
+- **Code changes:** From an updated `develop`, create a local branch (`feat/short-name`, `fix/description`, `chore/…`), push it, and open a pull request **into `develop`**.
+- **Scope:** Keep PRs focused and small when possible.
 
 ## Planning triad
 
@@ -25,13 +33,13 @@ make ci
 
 Maintainers before tag: `make release-check` (includes `make cover` with **`COVER_MIN=80`**; optional `STRICT_RELEASE=1` for image scan).
 
-Release: open PR `develop` → `main` (`gh pr create`), merge on GitHub, then annotated tag `vX.Y.Z` on `main` → push tag → `.github/workflows/release.yml` runs GoReleaser (binaries + `ghcr.io/hrodrig/groot-trigger:vX.Y.Z`).
+## Release flow
+
+1. Merge feature PRs into **`develop`**.
+2. Open PR **`develop` → `main`** (`gh pr create --base main --head develop`). Merge on GitHub.
+3. Annotated tag `vX.Y.Z` on **`main`** → `git push origin vX.Y.Z` → `.github/workflows/release.yml` runs GoReleaser (binaries + `ghcr.io/hrodrig/groot-trigger:vX.Y.Z`).
 
 ## Scope
 
 - **In:** HTTP trigger, Job create, deploy manifests for the trigger.
 - **Out:** GROOT CLI / collector logic → [groot](https://github.com/hrodrig/groot). Scheduled CronJob packaging → [groot-selfhosted](https://github.com/hrodrig/groot-selfhosted).
-
-## Branches
-
-Day-to-day work on **`develop`**. Do not commit features on **`main`**. CI runs on push/PR to `main` and `develop`.

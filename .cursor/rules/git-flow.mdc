@@ -1,18 +1,28 @@
 ---
-description: Git flow — develop for work, main for production; releases via tags.
+description: Git flow — feature branch → PR to develop; main is production via PR; never push to develop or main.
 alwaysApply: true
 ---
 
-# Git flow (GitHub): develop → main and tagged releases
+# Git flow (GitHub): feature branch → develop → main
 
-- **Branches**: Day-to-day work happens on `develop`. The `main` branch is production and must only be updated from `develop` (merge or squash) when the code is ready for release.
-- **Releases**: Before publishing to GitHub or releasing a version:
-  1. Ensure everything is committed on `develop` and **all tests pass** (`make test` or `go test ./...`).
-  2. Merge `develop` into `main` (or open a Pull Request develop → main).
-  3. On `main`, create an annotated tag with the version number (e.g. `v1.0.0`):
-     `git tag -a v1.0.0 -m "Release 1.0.0"`
-     and push the tag:
-     `git push origin v1.0.0`
-- **Versions**: Use semantic versioning (MAJOR.MINOR.PATCH) for tags, e.g. `v1.2.3`.
-- **Never** commit directly to `main` for features or fixes; everything must go through `develop`, then merge into `main` at release time.
-- **Local-first:** until `origin` exists, keep commits on `develop` only; do not invent a remote.
+GitHub rulesets **`protect-develop`** and **`protect-main`** block direct pushes (same pattern as [gghstats](https://github.com/hrodrig/gghstats)).
+
+## Day-to-day
+
+1. Update local `develop` (`git fetch origin && git switch develop && git pull`).
+2. Create a **local branch** (`feat/…`, `fix/…`, `chore/…`).
+3. Commit on that branch. **Never** `git push origin develop` or `git push origin main`.
+4. Push the feature branch and open a **PR with base `develop`**.
+5. Merge on GitHub after required CI checks pass.
+
+## Releases
+
+1. Integration is already on `develop`. All tests pass (`make test` / `make release-check` before tag).
+2. Open a PR **`develop` → `main`**. Do not push `main`.
+3. After merge, on `main`: annotated tag `vX.Y.Z` and `git push origin vX.Y.Z` (GoReleaser).
+
+## Never
+
+- Direct push to `develop` or `main`
+- Feature commits on `main`
+- Invent a remote or `git push` unless the operator asked

@@ -7,6 +7,7 @@ Companion HTTP service: create in-cluster **Jobs** running **groot** collect.
 | Implement against `docs/SPECIFICATIONS.md` | Put collector logic / product SPEC here |
 | Mirror groot packaging patterns | Put long-lived HTTP inside **groot** CLI |
 | English-only artifacts | Invent remotes or push secrets |
+| Local branch → PR into **`develop`** | Direct push to `develop` or `main` |
 
 | Repo | Role |
 |------|------|
@@ -14,4 +15,6 @@ Companion HTTP service: create in-cluster **Jobs** running **groot** collect.
 | **groot-selfhosted** | Scheduled / bastion deploy |
 | **groot-trigger** | `GET`/`POST /v1/collect` → Job |
 
-**Remote:** [github.com/hrodrig/groot-trigger](https://github.com/hrodrig/groot-trigger). Release via PR `develop` → `main`, then annotated tag on `main`.
+**Remote:** [github.com/hrodrig/groot-trigger](https://github.com/hrodrig/groot-trigger).
+
+Work on a **local branch**, then PR into **`develop`**. Never push to `develop` or `main`. Release: PR `develop` → `main`, then annotated tag on `main`.

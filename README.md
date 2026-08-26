@@ -4,14 +4,14 @@
 
 **⚡** _In-cluster HTTP API that creates a Kubernetes Job running [`groot`](https://github.com/hrodrig/groot) collect_
 
-[![Version](https://img.shields.io/badge/version-0.1.2-blue)](https://github.com/hrodrig/groot-trigger/releases)
+[![Version](https://img.shields.io/badge/version-0.1.3-blue)](https://github.com/hrodrig/groot-trigger/releases)
 [![Release](https://img.shields.io/github/v/release/hrodrig/groot-trigger?display_name=tag&label=release&logo=github)](https://github.com/hrodrig/groot-trigger/releases)
 [![Go](https://img.shields.io/badge/Go-1.26.6-00ADD8?logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![CI](https://github.com/hrodrig/groot-trigger/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hrodrig/groot-trigger/actions/workflows/ci.yml)
 [![gghstats clones](https://gghstats.hermesrodriguez.com/api/v1/badge/hrodrig/groot-trigger?metric=clones)](https://gghstats.hermesrodriguez.com/hrodrig/groot-trigger)
 
-**Repo:** [github.com/hrodrig/groot-trigger](https://github.com/hrodrig/groot-trigger) · **Releases:** [GitHub Releases](https://github.com/hrodrig/groot-trigger/releases) · **Spec:** [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) · **Deploy:** [deploy/k8s](deploy/k8s/README.md) · **Scheduled collect:** [groot-selfhosted](https://github.com/hrodrig/groot-selfhosted) · **Changelog:** [CHANGELOG.md](CHANGELOG.md) · **Roadmap:** [ROADMAP.md](ROADMAP.md)
+**Repo:** [github.com/hrodrig/groot-trigger](https://github.com/hrodrig/groot-trigger) · **Releases:** [GitHub Releases](https://github.com/hrodrig/groot-trigger/releases) · **Spec:** [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) · **Deploy:** [deploy/k8s](deploy/k8s/README.md) · **Operator:** [groot-selfhosted](https://github.com/hrodrig/groot-selfhosted) · **Share (gfs):** [groot-share](https://github.com/hrodrig/groot-share) · **Share deploy:** [groot-share-selfhosted](https://github.com/hrodrig/groot-share-selfhosted) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Changelog:** [CHANGELOG.md](CHANGELOG.md) · **Roadmap:** [ROADMAP.md](ROADMAP.md)
 
 <p align="center">
   <img src="docs/assets/groot-trigger-readme-hero.png" alt="groot-trigger — in-cluster HTTP API that starts a groot collect Job" width="100%" />
@@ -21,7 +21,19 @@
 
 **How groot-trigger solves it:** An idle **Deployment** in the cluster exposes `GET/POST /v1/collect`. The GET serves a minimal **vanilla** HTML page (API key + **Generate GROOT files**). The POST authenticates, rate-limits, enforces single-flight (`409` if a collect Job is already running), and creates an ephemeral Kubernetes **Job** that runs `ghcr.io/hrodrig/groot` with the operator’s ConfigMap / Secrets. The trigger stays fire-and-forget (`202` + `run_id`); completion shows up via groot notify and/or the Job’s configured upload — not by proxying the archive through this service.
 
-> **Runtime target is Kubernetes.** Ship and run the published image (`ghcr.io/hrodrig/groot-trigger`) with the flat manifests under [deploy/k8s](deploy/k8s/README.md). This companion does **not** replace the CLI; scheduled / bastion collect stays in **[groot-selfhosted](https://github.com/hrodrig/groot-selfhosted)**.
+> **Runtime target is Kubernetes.** Ship and run the published image (`ghcr.io/hrodrig/groot-trigger`) with the flat manifests under [deploy/k8s](deploy/k8s/README.md). This companion does **not** replace the CLI; scheduled / bastion collect stays in **[groot-selfhosted](https://github.com/hrodrig/groot-selfhosted)**. Archive catalog on a VPS: **[groot-share](https://github.com/hrodrig/groot-share)** (**gfs**); deploy playbooks: **[groot-share-selfhosted](https://github.com/hrodrig/groot-share-selfhosted)**.
+
+<a id="groot-family"></a>
+
+**Groot family** (companion repos — collect stays in the **groot** CLI):
+
+| Repo | Role |
+|------|------|
+| **[groot](https://github.com/hrodrig/groot)** | CLI: `collect` / validate / inspect / analyze → `.tar.gz`; optional `upload.s3` / `upload.gcs` / `upload.sftp` |
+| **[groot-selfhosted](https://github.com/hrodrig/groot-selfhosted)** | Operator deploy for **groot**: CronJob, bastion, Helm; S3-only and SFTP-VPS playbooks |
+| **groot-trigger** (this repo) | In-cluster HTTP → Job `groot collect`; fire-and-forget; optional post-collect upload |
+| **[groot-share](https://github.com/hrodrig/groot-share)** (**gfs**) | VPS web + API: auth, HTTP ingest, list, download, audit, retention (`vps` and `vps-s3`) |
+| **[groot-share-selfhosted](https://github.com/hrodrig/groot-share-selfhosted)** | Operator deploy for **gfs**: VPS, `vps-s3`, systemd, Docker, Helm |
 
 **Related tools (same maintainer):**
 - **[pgwd](https://github.com/hrodrig/pgwd)** — PostgreSQL connection watchdog ([live traffic](https://gghstats.hermesrodriguez.com/hrodrig/pgwd); deploy: [pgwd-selfhosted](https://github.com/hrodrig/pgwd-selfhosted))
@@ -31,11 +43,11 @@
 
 ## Table of contents
 
+- [Groot family](#groot-family)
 - [HTTP API](#http-api)
 - [Deploy on Kubernetes](#deploy-on-kubernetes)
 - [HTTP API usage](#http-api-usage)
 - [Build (maintainers)](#build-maintainers)
-- [Family roles](#family-roles)
 - [License](#license)
 
 [↑ Back to top](#readme-top)
@@ -70,7 +82,7 @@ kubectl apply -f deploy/k8s/always -f deploy/k8s/job-sa
 # kubectl apply -f deploy/k8s/always
 ```
 
-Image: `ghcr.io/hrodrig/groot-trigger:v0.1.2` (GoReleaser; **`v`-prefixed** tags only).
+Image: `ghcr.io/hrodrig/groot-trigger:v0.1.3` (GoReleaser; **`v`-prefixed** tags only).
 
 Reach the UI/API via ClusterIP Service, Ingress, or a temporary port-forward from a machine that can reach the cluster API/network:
 
@@ -119,17 +131,7 @@ make docker-build-amd64
 
 BSD ports / man: [contrib/README.md](contrib/README.md).
 
-[↑ Back to top](#readme-top)
-
-## Family roles
-
-| Repo | Role |
-|------|------|
-| **[groot](https://github.com/hrodrig/groot)** | CLI collector, SPEC, `ghcr.io/hrodrig/groot` |
-| **[groot-selfhosted](https://github.com/hrodrig/groot-selfhosted)** | CronJob / Helm / bastion / docker run |
-| **groot-trigger** (this repo) | In-cluster HTTP → on-demand collect Job |
-
-English only for all project artifacts.
+PRs: local branch → pull request into **`develop`**. Do not push `develop` or `main`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 [↑ Back to top](#readme-top)
 
