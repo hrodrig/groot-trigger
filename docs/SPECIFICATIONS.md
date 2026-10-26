@@ -1,6 +1,6 @@
 # groot-trigger — specifications
 
-**Status:** Approved (2026-08-12). Behavior contract for **v0.1.2**.  
+**Status:** Approved (2026-08-12). Behavior contract for **v0.2.0**.  
 **Repo:** [github.com/hrodrig/groot-trigger](https://github.com/hrodrig/groot-trigger)  
 **Design history:** [docs/superpowers/specs/2026-08-12-groot-trigger-design.md](superpowers/specs/2026-08-12-groot-trigger-design.md)  
 **Not in scope:** GROOT CLI behavior; Helm CronJob packaging (**groot** / **groot-selfhosted**).
@@ -297,7 +297,7 @@ groot-trigger/
   .goreleaser.yaml / Makefile
 ```
 
-Stack: Go **1.26.x** (align with groot), client-go, stdlib `net/http` (keep deps small). Packaging mirrors **groot** (distroless, GoReleaser, `v`-prefixed image tags).
+Stack: Go **1.27.x** (align with groot), client-go, stdlib `net/http` (keep deps small). Packaging mirrors **groot** (distroless, GoReleaser, `v`-prefixed image tags).
 
 ## 12. Relationship to siblings
 
