@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Go 1.26.6 → 1.27.3** in `go.mod` and the **Dockerfile** builder (`golang:1.27.3-alpine`). `crypto/x509` rejects chains that include compromised eMudhra intermediates (**CVE-2026-111943** / **GO-2026-6809**). Toolchain minor move, so the product cut is a minor. golangci-lint **v2.12.2 → v2.14.0** (v2.12.2 exits on `go 1.27` modules).
+
 ### Changed
 
 - After every `develop` → `main` merge, sync **`main` into `develop`** so the next release PR is not **"out-of-date with the base branch"** (documented in git-flow / CONTRIBUTING).

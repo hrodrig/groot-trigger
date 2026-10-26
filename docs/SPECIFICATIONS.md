@@ -297,7 +297,7 @@ groot-trigger/
   .goreleaser.yaml / Makefile
 ```
 
-Stack: Go **1.26.x** (align with groot), client-go, stdlib `net/http` (keep deps small). Packaging mirrors **groot** (distroless, GoReleaser, `v`-prefixed image tags).
+Stack: Go **1.27.x** (align with groot), client-go, stdlib `net/http` (keep deps small). Packaging mirrors **groot** (distroless, GoReleaser, `v`-prefixed image tags).
 
 ## 12. Relationship to siblings
 

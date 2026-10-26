@@ -1,6 +1,6 @@
 module github.com/hrodrig/groot-trigger
 
-go 1.26.6
+go 1.27.3
 
 require (
 	golang.org/x/time v0.11.0
