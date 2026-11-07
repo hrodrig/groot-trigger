@@ -2,6 +2,14 @@ module github.com/hrodrig/groot-trigger
 
 go 1.27.3
 
+// Disable Multipath TCP for every binary in this module. Go 1.24+ enables
+// MPTCP on Linux listeners by default (multipathtcp=2) and CVE-2026-98432 — a
+// use-after-free in the Linux kernel IPv4 TCP options path (CVSS 9.8) — has a
+// public remote-root exploit against hosts exposing an MPTCP listener.
+// The trigger listener also calls SetMultipathTCP(false) explicitly, which
+// overrides this directive; the directive covers every other binary.
+godebug multipathtcp=0
+
 require (
 	golang.org/x/time v0.11.0
 	k8s.io/api v0.33.3

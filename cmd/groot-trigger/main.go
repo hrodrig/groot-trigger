@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -102,11 +103,34 @@ func newHTTPServer(cfg config.Config, newKS newInClusterFn) (*http.Server, error
 	}, nil
 }
 
+// listenConfig returns the ListenConfig used for the HTTP listener.
+//
+// Multipath TCP is disabled explicitly. Go 1.24+ enables MPTCP on Linux
+// listeners by default (GODEBUG multipathtcp=2) and CVE-2026-98432 — a
+// use-after-free in the Linux kernel IPv4 TCP options path (CVSS 9.8) — has a
+// public remote-root exploit against hosts exposing an MPTCP listener.
+// SetMultipathTCP(false) overrides both the system default and
+// GODEBUG=multipathtcp=*, so the listener stays plain TCP in every
+// environment. A patched kernel remains the real fix: this closes the
+// published MPTCP exploit path only.
+func listenConfig() *net.ListenConfig {
+	var lc net.ListenConfig
+	lc.SetMultipathTCP(false)
+	return &lc
+}
+
 func listenAndServe(httpSrv *http.Server) int {
 	errCh := make(chan error, 1)
 	go func() {
-		slog.Info("listen", "addr", httpSrv.Addr)
-		errCh <- httpSrv.ListenAndServe()
+		lc := listenConfig()
+		l, err := lc.Listen(context.Background(), "tcp", httpSrv.Addr)
+		if err != nil {
+			errCh <- fmt.Errorf("listen %s: %w", httpSrv.Addr, err)
+			return
+		}
+		defer func() { _ = l.Close() }()
+		slog.Info("listen", "addr", l.Addr().String(), "mptcp", lc.MultipathTCP())
+		errCh <- httpSrv.Serve(l)
 	}()
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

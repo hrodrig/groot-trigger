@@ -59,6 +59,8 @@ ClusterIP only by default. Set `GROOT_TRIGGER_TRUSTED_PROXIES` only behind a rea
 
 The trigger container uses distroless `nonroot`; the Deployment sets numeric `runAsUser` / `runAsGroup` `65532` so `runAsNonRoot` succeeds.
 
+**Kernel patching is required.** The trigger never opens an MPTCP socket (the binary calls `net.ListenConfig.SetMultipathTCP(false)`, `go.mod` sets `godebug multipathtcp=0`, and the Deployment sets `GODEBUG=multipathtcp=0`), but **CVE-2026-98432** is a Linux kernel use-after-free whose plain IPv4 TCP path is still reachable. Patch the node kernel (`5.10.272`, `5.15.223`, `6.1.190`, `6.6.159`, `6.12.113`, `6.18.56`, `7.2.10`, `7.3` or later). Details: [SECURITY.md](../../SECURITY.md).
+
 RBAC:
 
 | SA | Rights | Created by |
