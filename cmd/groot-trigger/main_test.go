@@ -116,7 +116,7 @@ func TestListenerDoesNotUseMPTCP(t *testing.T) {
 	controlLC.SetMultipathTCP(true)
 	control, err := controlLC.Listen(ctx, "tcp", "127.0.0.1:0")
 	if err != nil {
-		t.Skipf("control listener: %v", err)
+		t.Skipf("MPTCP control listener unavailable: %v", err)
 	}
 	defer func() { _ = control.Close() }()
 
@@ -125,13 +125,13 @@ func TestListenerDoesNotUseMPTCP(t *testing.T) {
 
 	controlConn, err := dialer.DialContext(ctx, "tcp", control.Addr().String())
 	if err != nil {
-		t.Skipf("control dial: %v", err)
+		t.Skipf("MPTCP control dial failed: %v", err)
 	}
 	controlMPTCP := connUsesMPTCP(t, controlConn)
 	_ = controlConn.Close()
 
 	if !controlMPTCP {
-		t.Skip("host kernel does not support MPTCP; differential check not applicable")
+		t.Skip("control connection did not negotiate MPTCP; differential check not applicable on this host")
 	}
 
 	l, err := listenConfig().Listen(ctx, "tcp", "127.0.0.1:0")
