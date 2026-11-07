@@ -36,6 +36,11 @@ spec:
           env:
             - name: LISTEN_ADDR
               value: ":8080"
+            # Defense in depth (CVE-2026-98432): the binary already disables
+            # MPTCP on its listener and go.mod sets `godebug multipathtcp=0`.
+            # This also covers an older image tag run with these manifests.
+            - name: GODEBUG
+              value: multipathtcp=0
             - name: GROOT_IMAGE
               value: ghcr.io/hrodrig/groot:v1.1.1
             - name: GROOT_NAMESPACE

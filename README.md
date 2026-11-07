@@ -47,6 +47,7 @@
 - [HTTP API](#http-api)
 - [Deploy on Kubernetes](#deploy-on-kubernetes)
 - [HTTP API usage](#http-api-usage)
+- [Security](#security)
 - [Build (maintainers)](#build-maintainers)
 - [License](#license)
 
@@ -115,6 +116,18 @@ curl -sS -X POST \
 ```
 
 Single-flight: a second POST while a collect Job is Pending/Running returns **`409`**. Rate limits return **`429`**.
+
+[↑ Back to top](#readme-top)
+
+## Security
+
+The trigger listens on **plain TCP**: Multipath TCP is disabled in the binary (`net.ListenConfig.SetMultipathTCP(false)`), in the module default (`go.mod` → `godebug multipathtcp=0`), and in the reference Deployment (`GODEBUG=multipathtcp=0`).
+
+Why: Go 1.24+ enables MPTCP on Linux listeners by default, and **CVE-2026-98432** — a use-after-free in the Linux kernel IPv4 TCP options path (CVSS 9.8) — has a public remote-root exploit against hosts exposing an MPTCP listener.
+
+**Patch the node kernel.** That is the real fix; disabling MPTCP only closes the published MPTCP path, because plain IPv4 TCP can still reach the underlying race. Fixed kernels: `5.10.272`, `5.15.223`, `6.1.190`, `6.6.159`, `6.12.113`, `6.18.56`, `7.2.10`, `7.3` or later.
+
+Binding to `127.0.0.1` does **not** disable MPTCP. Details and operator steps: [SECURITY.md](SECURITY.md).
 
 [↑ Back to top](#readme-top)
 
