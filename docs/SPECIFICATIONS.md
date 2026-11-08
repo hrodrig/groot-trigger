@@ -1,6 +1,6 @@
 # groot-trigger — specifications
 
-**Status:** Approved (2026-08-12). Behavior contract for **v0.2.0**.  
+**Status:** Approved (2026-08-12). Behavior contract for **v0.2.1**.  
 **Repo:** [github.com/hrodrig/groot-trigger](https://github.com/hrodrig/groot-trigger)  
 **Design history:** [docs/superpowers/specs/2026-08-12-groot-trigger-design.md](superpowers/specs/2026-08-12-groot-trigger-design.md)  
 **Not in scope:** GROOT CLI behavior; Helm CronJob packaging (**groot** / **groot-selfhosted**).
@@ -274,6 +274,7 @@ Startup config summary: image, namespace, rate limits, trusted-proxy on/off — 
 - Distroless / nonroot image for trigger binary
 - No shell in Job image (official groot distroless)
 - Collect Job: `readOnlyRootFilesystem`; writes only `/out` (and `/tmp` emptyDir)
+- **MPTCP disabled** on the trigger listener (`net.ListenConfig.SetMultipathTCP(false)`; module default `godebug multipathtcp=0`). Go 1.24+ enables MPTCP on Linux listeners by default and **CVE-2026-98432** (Linux kernel IPv4 TCP options use-after-free, CVSS 9.8) has a public remote-root exploit against hosts exposing an MPTCP listener. A patched kernel remains the real fix — plain IPv4 TCP still reaches the underlying race
 
 ## 10. Testing
 

@@ -28,7 +28,7 @@ spec:
       containers:
         - name: trigger
           # Pin v-prefixed tags (GoReleaser; bare :0.1.0 is not published).
-          image: ghcr.io/hrodrig/groot-trigger:v0.2.0
+          image: ghcr.io/hrodrig/groot-trigger:v0.2.1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -36,6 +36,11 @@ spec:
           env:
             - name: LISTEN_ADDR
               value: ":8080"
+            # Defense in depth (CVE-2026-98432): the binary already disables
+            # MPTCP on its listener and go.mod sets `godebug multipathtcp=0`.
+            # This also covers an older image tag run with these manifests.
+            - name: GODEBUG
+              value: multipathtcp=0
             - name: GROOT_IMAGE
               value: ghcr.io/hrodrig/groot:v1.1.1
             - name: GROOT_NAMESPACE

@@ -111,7 +111,7 @@ run: build
 	$(BIN_DIR)/$(APP_NAME)
 
 test:
-	go test ./... -race -count=1
+	go test ./... -race -count=1 -v
 
 cover:
 	go test ./... -race -count=1 -covermode=atomic -coverpkg=./... -coverprofile=coverage.out

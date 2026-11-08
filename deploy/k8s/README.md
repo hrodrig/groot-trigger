@@ -1,6 +1,6 @@
 # Flat Kubernetes manifests — groot-trigger
 
-Pin `ghcr.io/hrodrig/groot-trigger:v0.2.0` (GoReleaser; **`v`-prefixed** tags). Behavior: [docs/SPECIFICATIONS.md](../../docs/SPECIFICATIONS.md).
+Pin `ghcr.io/hrodrig/groot-trigger:v0.2.1` (GoReleaser; **`v`-prefixed** tags). Behavior: [docs/SPECIFICATIONS.md](../../docs/SPECIFICATIONS.md).
 
 Namespace `groot` is assumed (`kubectl create namespace groot` if missing). Do not commit real API keys.
 
@@ -58,6 +58,8 @@ kubectl -n groot port-forward svc/groot-trigger 8080:8080
 ClusterIP only by default. Set `GROOT_TRIGGER_TRUSTED_PROXIES` only behind a real Ingress.
 
 The trigger container uses distroless `nonroot`; the Deployment sets numeric `runAsUser` / `runAsGroup` `65532` so `runAsNonRoot` succeeds.
+
+**Kernel patching is required.** The trigger never opens an MPTCP socket (the binary calls `net.ListenConfig.SetMultipathTCP(false)`, `go.mod` sets `godebug multipathtcp=0`, and the Deployment sets `GODEBUG=multipathtcp=0`), but **CVE-2026-98432** is a Linux kernel use-after-free whose plain IPv4 TCP path is still reachable. Patch the node kernel (`5.10.272`, `5.15.223`, `6.1.190`, `6.6.159`, `6.12.113`, `6.18.56`, `7.2.10`, `7.3` or later). Details: [SECURITY.md](../../SECURITY.md).
 
 RBAC:
 

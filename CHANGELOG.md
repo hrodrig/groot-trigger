@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-11-08
+
+### Security
+
+- **MPTCP disabled on the trigger listener** (**CVE-2026-98432**). Go 1.24+ enables Multipath TCP on Linux listeners by default (`multipathtcp=2`), and the Linux kernel IPv4 TCP options use-after-free (CVSS 9.8) has a public remote-root exploit against hosts exposing an MPTCP listener. The listener now uses `net.ListenConfig.SetMultipathTCP(false)` — which overrides the system default *and* `GODEBUG` — `go.mod` sets `godebug multipathtcp=0` for the module, and the reference Deployment sets `GODEBUG=multipathtcp=0`. A patched kernel is still the real fix: plain IPv4 TCP can still reach the underlying race (#22)
+
+### Changed
+
+- Kubernetes client stack **0.33.3 → 0.37.2** (`k8s.io/api`, `apimachinery`, `client-go`); `golang.org/x/time` **v0.11.0 → v0.15.0** (same band as groot).
+- `golang.org/x/net` **v0.60.0 → v0.62.0** (grype: **GO-2026-6860** / **6866**).
+
 ## [0.2.0] — 2026-10-26
 
 ### Security

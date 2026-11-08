@@ -4,7 +4,7 @@
 
 **⚡** _In-cluster HTTP API that creates a Kubernetes Job running [`groot`](https://github.com/hrodrig/groot) collect_
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/hrodrig/groot-trigger/releases)
+[![Version](https://img.shields.io/badge/version-0.2.1-blue)](https://github.com/hrodrig/groot-trigger/releases)
 [![Release](https://img.shields.io/github/v/release/hrodrig/groot-trigger?display_name=tag&label=release&logo=github)](https://github.com/hrodrig/groot-trigger/releases)
 [![Go](https://img.shields.io/badge/Go-1.27.3-00ADD8?logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
@@ -47,6 +47,7 @@
 - [HTTP API](#http-api)
 - [Deploy on Kubernetes](#deploy-on-kubernetes)
 - [HTTP API usage](#http-api-usage)
+- [Security](#security)
 - [Build (maintainers)](#build-maintainers)
 - [License](#license)
 
@@ -82,7 +83,7 @@ kubectl apply -f deploy/k8s/always -f deploy/k8s/job-sa
 # kubectl apply -f deploy/k8s/always
 ```
 
-Image: `ghcr.io/hrodrig/groot-trigger:v0.2.0` (GoReleaser; **`v`-prefixed** tags only).
+Image: `ghcr.io/hrodrig/groot-trigger:v0.2.1` (GoReleaser; **`v`-prefixed** tags only).
 
 Reach the UI/API via ClusterIP Service, Ingress, or a temporary port-forward from a machine that can reach the cluster API/network:
 
@@ -115,6 +116,18 @@ curl -sS -X POST \
 ```
 
 Single-flight: a second POST while a collect Job is Pending/Running returns **`409`**. Rate limits return **`429`**.
+
+[↑ Back to top](#readme-top)
+
+## Security
+
+The trigger listens on **plain TCP**: Multipath TCP is disabled in the binary (`net.ListenConfig.SetMultipathTCP(false)`), in the module default (`go.mod` → `godebug multipathtcp=0`), and in the reference Deployment (`GODEBUG=multipathtcp=0`).
+
+Why: Go 1.24+ enables MPTCP on Linux listeners by default, and **CVE-2026-98432** — a use-after-free in the Linux kernel IPv4 TCP options path (CVSS 9.8) — has a public remote-root exploit against hosts exposing an MPTCP listener.
+
+**Patch the node kernel.** That is the real fix; disabling MPTCP only closes the published MPTCP path, because plain IPv4 TCP can still reach the underlying race. Fixed kernels: `5.10.272`, `5.15.223`, `6.1.190`, `6.6.159`, `6.12.113`, `6.18.56`, `7.2.10`, `7.3` or later.
+
+Binding to `127.0.0.1` does **not** disable MPTCP. Details and operator steps: [SECURITY.md](SECURITY.md).
 
 [↑ Back to top](#readme-top)
 
